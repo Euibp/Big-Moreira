@@ -5,6 +5,7 @@
 	#include <fstream>
 	#include <vector>
 	#include <sstream>
+	#include <iomanip>
 
 //#else
 //#endif
@@ -19,7 +20,17 @@ using namespace std;
 #define MAX_LINHA 80
 #define MAX_COMPONENTE 50
 #define MAX_NOS 50
+#define TOLG 0//1e-9
 
+enum error {
+	SUCESSO,
+	ARQUIVO_INEXISTENTE,
+	ERRO_NUMERO_MAXIMO_ELEMENTOS,
+	ELEMENTO_DESCONHECIDO,
+	NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES,
+	SISTEMA_SINGULAR,
+	ERRO_ABERTURA_ARQUIVO
+};
 
 class Componente{
 public:
@@ -35,18 +46,28 @@ public:
 	int	j_y;
 };
 
+class param {
+public:
+	param() { tempo = 0; erroc = 0; errol = 0; erro = 0; dt = 0;	}
+	double tempo;
+	double erroc;
+	double errol;
+	double erro;
+	double dt;
+};
+
 typedef vector<Componente> netlist;
-typedef vector<vector<int>> matriz;
+typedef vector<vector<double>> matriz;
 
 int ResolverSistema(matriz &sistema);
 int NomearNos(string nome, vector<string> &lista);
 int ObterNetlist(string nomeArquino, netlist &netlist, vector<string> &lista);
 int ConfigurarNetList(netlist &netList, vector<string> &lista);
 
-int Estampar(netlist netList, matriz &sistema, vector<string> lista);
+int Estampar(netlist netList, matriz &sistema, size_t num_Val);
 
-int SalvarResultados(ofstream &arquivo, matriz sistema);
 int ExibirResultados(matriz sistema);
 
+int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros);
 
 

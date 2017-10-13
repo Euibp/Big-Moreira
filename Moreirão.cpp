@@ -8,6 +8,18 @@ int main()
 {
 	netlist net_List;
 	vector<string> lista;
-	cout << ObterNetlist("teste.net", net_List, lista);
+	matriz sistema;
+	ofstream arquivo;
+	param parametros;
+
+	ObterNetlist("teste.net", net_List, lista);
+	Estampar(net_List, sistema, lista.size());
+	ResolverSistema(sistema);
+
+	arquivo.open("teste.TAB");
+
+	SalvarResultados(arquivo, lista, sistema, parametros);
+	arquivo.close();
+
     return 0;
 }

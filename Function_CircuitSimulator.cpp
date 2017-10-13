@@ -1,15 +1,7 @@
 #include "stdafx.h"
 #include "Header_CircuitSimulator.h"
 
-enum error {
-	SUSCESS,
-	ARQUIVO_INEXISTENTE,
-	ERRO_NUMERO_MAXIMO_ELEMENTOS,
-	ELEMENTO_DESCONHECIDO,
-	NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES
-};
-
-int ObterNetlist(string nomeArquivo, netlist &net_List , vector<string> &lista) {
+int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 	ifstream arquivo;
 	string linha, componente;
 
@@ -54,8 +46,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List , vector<string> &lista) 
 
 		if (generico.tipo == "R" || generico.tipo == "I" || generico.tipo == "V") {
 			generico.nome = SplitVec[0];
-			generico.no_A = NomearNos(SplitVec[1],lista);
-			generico.no_B = NomearNos(SplitVec[2],lista);
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = stod(SplitVec[3]);
 		}
 		else if (generico.tipo == "G" || generico.tipo == "E" || generico.tipo == "F" || generico.tipo == "H")
@@ -87,10 +79,10 @@ int ObterNetlist(string nomeArquivo, netlist &net_List , vector<string> &lista) 
 
 
 		if (generico.tipo != "*") {
-			if ( lista.size() == MAX_NOS) {
-					//printf("O programa só aceita até %d nós", num_Nos);
+			if (lista.size() == MAX_NOS) {
+				//printf("O programa só aceita até %d nós", num_Nos);
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
-				}
+			}
 			net_List.push_back(generico);
 		}
 		//cout << net_List[ne - 1].nome << " " << net_List[ne - 1].no_A << " " << net_List[ne - 1].no_B << " " << net_List[ne - 1].no_C << " " << net_List[ne - 1].no_D << " " << net_List[ne - 1].valor << endl;
@@ -104,7 +96,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List , vector<string> &lista) 
 	//	cout << lista[index] << " : ";
 	//}
 
-	return(0);
+	return(SUCESSO);
 };
 
 //#########################################################################################################
@@ -129,12 +121,11 @@ int NomearNos(string nome, vector<string> &lista) {
 
 int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 	string tipo;
-	unsigned int num_Nos = lista.size();
-	
+	unsigned int num_Nos = lista.size() - 1;
+
 	for (size_t indice = 0; indice < net_List.size(); indice++)
 	{
 		tipo = net_List[indice].tipo;
-		cout << tipo;
 		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O")
 		{
 			num_Nos++; /*Uma variável de corrente a mais é contada*/
@@ -144,10 +135,9 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			}
 			lista.push_back("j" + net_List[indice].nome);
-			//strcpy(lista[num_Nos], "j"); 			/*A nova variável vai para a lista de variáveis com o nome j<nomeDoComponente>*/
-			//strcat(lista[num_Nos], netlist[i].nome); /*A nova variável vai para a lista de variáveis com o nome j<nomeDoComponente>*/
 
 			net_List[indice].j_x = num_Nos; /*Não sei o que diabos é isso*/
+			cout << net_List[indice].j_x << " / ";
 		}
 		/*Se o componente for uma fonte de tensão controlada por corrente é necessário acrescentar
 		duas novas variáveis de corrente*/
@@ -163,65 +153,184 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 			net_List[indice].j_x = num_Nos - 1;
 			lista.push_back("jy" + net_List[indice].nome);
 			net_List[indice].j_y = num_Nos;
+			cout << net_List[indice].j_x << " ** " << net_List[indice].j_y << " / ";
 		}
 	}
 
 	cout << "lista" << endl;
 	for (size_t index = 0; index < lista.size(); index++) {
-		cout << lista[index] <<endl;
+		cout << lista[index] << endl;
 	}
 
-	//printf("Variaveis internas: \n");
-	//for (i = 0; i <= num_Nos; i++)
-	//	printf("%d -> %s\n", i, lista[i]);
-
-	//printf("Netlist interno final\n");
-	//for (i = 1; i <= ne; i++) {
-	//	tipo = netlist[i].nome[0]; /*Verifica o tipo do componente número tal*/
-
-	//	if (tipo == 'R' || tipo == 'I' || tipo == 'V')
-	//	{
-	//		printf("%s %d %d %g\n", netlist[i].nome, netlist[i].a, netlist[i].b, netlist[i].valor);
-	//	}
-	//	else if (tipo == 'G' || tipo == 'E' || tipo == 'F' || tipo == 'H')
-	//	{
-	//		printf("%s %d %d %d %d %g\n", netlist[i].nome, netlist[i].a, netlist[i].b, netlist[i].c, netlist[i].d, netlist[i].valor);
-	//	}
-	//	else if (tipo == 'O')
-	//	{
-	//		printf("%s %d %d %d %d\n", netlist[i].nome, netlist[i].a, netlist[i].b, netlist[i].c, netlist[i].d);
-	//	}
-	//	if (tipo == 'V' || tipo == 'E' || tipo == 'F' || tipo == 'O')
-	//		printf("Corrente jx: %d\n", netlist[i].x);
-	//	else if (tipo == 'H')
-	//		printf("Correntes jx e jy: %d, %d\n", netlist[i].x, netlist[i].y);
-	//}
-
-	//printf("O circuito tem %d nos, %d variaveis e %d elementos\n", nn, num_Nos, ne); /*impressão*/
-
-
-	//for (i = 0; i <= num_Nos; i++)						/*Zera a matriz AB(A e B na mesma matriz)*/
-	//{
-	//	for (j = 0; j <= num_Nos + 1; j++)
-	//	{
-	//		Yn[i][j] = 0;
-	//	}
-	//}
-
-	return(0);
+	return(SUCESSO);
 }
 
 
 //#########################################################################################################
 
+int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
+
+	matriz outSistema(num_Variaveis, vector<double>(num_Variaveis + 1, 0));
+
+	cout << endl << outSistema.size() << " " << outSistema[0].size();
+	/* Monta estampas */
+	for (size_t indice = 0; indice < net_List.size(); indice++) {
+		double valor_Aux;
+
+		switch (net_List[indice].tipo[0]) {
+		case 'R': // Resistor
+			valor_Aux = 1 / net_List[indice].valor;
+			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
+			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
+			break;
+		case 'G': // Transcondutancias
+			valor_Aux = net_List[indice].valor;
+			outSistema[net_List[indice].no_A][net_List[indice].no_C] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_D] += valor_Aux;
+			outSistema[net_List[indice].no_A][net_List[indice].no_D] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_C] -= valor_Aux;
+			break;
+		case 'I': // Fonte de Corrente Independente
+			valor_Aux = net_List[indice].valor;
+			outSistema[net_List[indice].no_A][num_Variaveis] -= valor_Aux;
+			outSistema[net_List[indice].no_B][num_Variaveis] += valor_Aux;
+			break;
+		case 'V': // Fonte de Tensão Independente
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_A] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
+			outSistema[net_List[indice].j_x][num_Variaveis] -= net_List[indice].valor;
+			break;
+		case 'E': // Fonte de tensão controlada por tensão
+			valor_Aux = net_List[indice].valor;
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_A] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_C] += valor_Aux;
+			outSistema[net_List[indice].j_x][net_List[indice].no_D] -= valor_Aux;
+			break;
+		case 'F': // Fonte de corrente controlada por corrente
+			valor_Aux = net_List[indice].valor;
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= valor_Aux;
+			outSistema[net_List[indice].no_C][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_D][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
+			break;
+		case 'H': // // Fonte de corrente controlada por tensão
+			valor_Aux = net_List[indice].valor;
+			outSistema[net_List[indice].no_A][net_List[indice].j_y] += 1;
+			outSistema[net_List[indice].no_B][net_List[indice].j_y] -= 1;
+			outSistema[net_List[indice].no_C][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_D][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_y][net_List[indice].no_A] -= 1;
+			outSistema[net_List[indice].j_y][net_List[indice].no_B] += 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
+			outSistema[net_List[indice].j_y][net_List[indice].j_x] += valor_Aux;
+			break;
+		case 'O': // Amplificador Operacional
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_C] += 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_D] -= 1;
+			break;
+		default:
+			break;
+		}
+	}
 
 
-int ResolverSistema(matriz &sistema);
+	for (size_t row = 1; row < outSistema.size(); row++) {
+		for (size_t col = 1; col < outSistema[row].size(); col++) {
+			cout << setw(4) << setprecision(2) << outSistema[row][col] << " ";
+		}
+		cout << endl;
+	}
+
+	sistema = outSistema;
+	return(SUCESSO);
+}
+//#########################################################################################################
+
+int ResolverSistema(matriz &sistema) {
+	double valor_ABS, aux;
+	size_t novo_Pivot;
+	vector<double> vetor_aux;
+
+	cout << endl;
+
+	for (size_t pivot = 1; pivot < sistema.size(); pivot++) {
+		valor_ABS = 0.0;
+		novo_Pivot = pivot;
+		for (size_t linha = pivot; linha < sistema.size(); linha++) {
+			if (fabs(sistema[linha][pivot]) > fabs(valor_ABS)) {
+				novo_Pivot = linha;
+				valor_ABS = sistema[linha][pivot];
+			}
+		}
+		if (pivot != novo_Pivot) {
+			//cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
+			vetor_aux = sistema[pivot];
+			sistema[pivot] = sistema[novo_Pivot];
+			sistema[novo_Pivot] = vetor_aux;
+			//cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
+		}
+
+		if (fabs(valor_ABS) < TOLG) {
+			//printf("Sistema singular");
+			return (SISTEMA_SINGULAR);
+		}
+
+		for (size_t indice = sistema.size(); indice >= pivot; indice--) {  /* Basta j>i em vez de j>0 */
+			//Normalização
+			sistema[pivot][indice] /= valor_ABS;
+			aux = sistema[pivot][indice];
+			for (size_t linha = 1; linha < sistema.size(); linha++) { /* Poderia não fazer se p=0 */
+				if (linha != pivot)
+					sistema[linha][indice] -= sistema[linha][pivot] * aux;
+			}
+		}
+		cout << endl;
+	}
+
+	for (size_t row = 1; row < sistema.size(); row++) {
+		for (size_t col = 1; col < sistema[row].size(); col++) {
+			cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
+		}
+		cout << endl;
+	}
+	return(SUCESSO);
+}
+
+
+//#########################################################################################################
+
+int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, param parametros) {
+
+	// 
+	if ((int)arquivo.tellp() == 0) {
+		arquivo << "t";
+		for (size_t index = 1; index < lista.size(); index++) {
+			arquivo << " " << lista[index];
+		}
+		arquivo << " erroc" << " errol" << " erro" << " dt" << endl;
+	}
+	arquivo << parametros.tempo;
+	for (size_t index = 1; index < lista.size(); index++) {
+		arquivo << " " << sistema[index][lista.size()];
+	}
+	arquivo << " " << parametros.erroc << " " << parametros.errol << " " << parametros.erro << " " << parametros.dt << endl;
+
+
+	return(SUCESSO);
+}
 
 
 
-
-int Estampar(netlist netList, matriz &sistema);
-
-int SalvarResultados(ofstream &arquivo, matriz sistema);
 int ExibirResultados(matriz sistema);

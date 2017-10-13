@@ -1,6 +1,75 @@
 #include "stdafx.h"
 #include "Header_CircuitSimulator.h"
 
+//int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista, param parameter) {
+//	if (generico.tipo == "V") {
+//		generico.nome = SplitVec[0];
+//		generico.no_A = NomearNos(SplitVec[1], lista);
+//		generico.no_B = NomearNos(SplitVec[2], lista);
+//		if (SplitVec[3] == "DC")	generico.valor = stod(SplitVec[3]);
+//		if (SplitVec[3] == "SIN")  generico.valor = CalcularSenoide(SplitVec,parameter.tempo);
+//		if (SplitVec[3] == "PULSE")  generico.valor = CalcularPulsante(SplitVec, parameter.tempo);
+//		}
+//	}
+//
+//}
+
+double CalcularPulsante(vector<string> pulso, double tempo){
+	double amplitude1 = stod(pulso[4]);
+	double amplitude2 = stod(pulso[5]);
+	double t_atraso = stod(pulso[6]);
+	double t_subida = stod(pulso[7]);
+	double t_descida = stod(pulso[8]);
+	double t_ligada = stod(pulso[9]);
+	double periodo = stod(pulso[10]);
+	int maxInteracao = stoi(pulso[11]);
+
+	if (tempo < t_atraso) {
+		return(amplitude1);
+	}
+
+	int interacao = (int)round((tempo - t_atraso) / periodo);
+
+	if (interacao < maxInteracao) {
+
+		tempo = tempo - interacao*periodo;
+		if (tempo < t_subida) {
+			return((tempo*(amplitude2 - amplitude1) / t_subida) + amplitude1);
+		}
+		if (tempo < t_ligada + t_subida) {
+			return(amplitude2);
+		}
+		if (tempo < t_ligada + t_subida + t_descida) {
+			return((tempo*(amplitude1 - amplitude2) / t_descida) + amplitude2);
+		}
+	}
+	// se não for nenhum dos casos está  desligado 
+	return(amplitude1);
+
+}
+
+
+double CalcularSenoide(vector<string> seno, double tempo) {
+	double thetaTemp, expTemp;
+
+	double nivelDC = stod(seno[4]);
+	double amplitude = stod(seno[5]);
+	double frequencia = stod(seno[6]);
+	double atraso = stod(seno[7]);
+	double alpha = stod(seno[8]);
+	double phi = stod(seno[9]);
+	double maxInteracao = stod(seno[10]);
+
+	if (tempo > (maxInteracao / frequencia)) {
+		return(nivelDC);
+	}
+
+	thetaTemp = (2 * PI*frequencia*(tempo - atraso)) + (PI / 180)*phi;
+	expTemp = exp(-alpha*(tempo - atraso));
+	return (nivelDC + amplitude*expTemp*sin(thetaTemp));
+
+}
+
 int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 	ifstream arquivo;
 	string linha, componente;

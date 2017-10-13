@@ -4,6 +4,7 @@
 	#include <string>
 	#include <fstream>
 	#include <vector>
+	#include <cmath>
 	#include <sstream>
 	#include <iomanip>
 
@@ -20,7 +21,9 @@ using namespace std;
 #define MAX_LINHA 80
 #define MAX_COMPONENTE 50
 #define MAX_NOS 50
-#define TOLG 0//1e-9
+#define TOLG 1e-9
+#define PI atan(1)*4
+
 
 enum error {
 	SUCESSO,
@@ -69,5 +72,11 @@ int Estampar(netlist netList, matriz &sistema, size_t num_Val);
 int ExibirResultados(matriz sistema);
 
 int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros);
+
+
+//#########################################################################################################
+//Funções de Calculo.
+double CalcularSenoide(vector<string> seno, double tempo);
+double CalcularPulsante(vector<string> pulso, double tempo);
 
 

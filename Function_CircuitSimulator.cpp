@@ -7,8 +7,8 @@
 //		generico.no_A = NomearNos(SplitVec[1], lista);
 //		generico.no_B = NomearNos(SplitVec[2], lista);
 //		if (SplitVec[3] == "DC")	generico.valor = stod(SplitVec[3]);
-//		if (SplitVec[3] == "SIN")  generico.valor = CalcularSenoide(SplitVec,parameter.tempo);
-//		if (SplitVec[3] == "PULSE")  generico.valor = CalcularPulsante(SplitVec, parameter.tempo);
+//		if (SplitVec[3] == "SIN")  generico.valor = CalcularSenoide(SplitVec,0);
+//		if (SplitVec[3] == "PULSE")  generico.valor = CalcularPulsante(SplitVec, 0);
 //		}
 //	}
 //
@@ -28,18 +28,19 @@ double CalcularPulsante(vector<string> pulso, double tempo){
 		return(amplitude1);
 	}
 
-	int interacao = (int)round((tempo - t_atraso) / periodo);
+	int interacao = (int)floor((tempo - t_atraso) / periodo);
 
 	if (interacao < maxInteracao) {
 
-		tempo = tempo - interacao*periodo;
-		if (tempo < t_subida) {
+		tempo = tempo - interacao*periodo - t_atraso;
+
+		if (tempo < t_subida && t_subida != 0) {
 			return((tempo*(amplitude2 - amplitude1) / t_subida) + amplitude1);
 		}
 		if (tempo < t_ligada + t_subida) {
 			return(amplitude2);
 		}
-		if (tempo < t_ligada + t_subida + t_descida) {
+		if (tempo < (t_ligada + t_subida + t_descida) && t_descida != 0) {
 			return((tempo*(amplitude1 - amplitude2) / t_descida) + amplitude2);
 		}
 	}
@@ -70,7 +71,61 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 
 }
 
-int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
+//#########################################################################################################
+int Dados_Analise::NumeroDeOperacoes() {
+	numero_De_Analises = (size_t)floor(tempo_Final / passo);
+	return(SUCESSO);
+}
+
+//#########################################################################################################
+int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
+	// estou dentro da fucking classe	
+	string tipo;
+
+	for (size_t index = 0; index < comp_var.size(); index++) {
+		tipo = comp_var[index][0][0];
+		if (tipo == "V") {
+			if (comp_var[index][3] == "SIN"){
+				net_List[posicao_var[index]].valor = CalcularSenoide(comp_var[index], tempo_Atual);
+			}
+			if (comp_var[index][3] == "PULSE") {
+				net_List[posicao_var[index]].valor = CalcularPulsante(comp_var[index], tempo_Atual);
+			}
+		}
+	
+	};
+
+	
+	return(SUCESSO);
+
+}
+
+//#########################################################################################################
+int Dados_Analise::AtualizarEstampa(netlist net_List, matriz &sistema) {
+	char tipo;
+	int posicao;
+
+	for (size_t indice = 0; indice < comp_var.size(); indice++){
+		posicao = posicao_var[indice];
+		tipo = comp_var[indice][0][0];
+		
+		switch (tipo) {
+		case 'V': // Fonte de Tensão Independente
+			sistema[net_List[posicao].j_x][sistema.size()] = -net_List[posicao].valor;
+			break;
+		default:
+			break;
+		}
+	}
+
+	return(SUCESSO);
+}
+
+
+
+//#########################################################################################################
+
+int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes) {
 	ifstream arquivo;
 	string linha, componente;
 
@@ -92,7 +147,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 	int ne = 0; /*Inicializa número de componentes como 0*/
 
 	getline(arquivo, linha);
-	cout << "FUCKING TITULO : " << linha << endl;
+	//cout << "FUCKING TITULO : " << linha << endl;
 
 	while (getline(arquivo, linha))
 	{
@@ -113,11 +168,22 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 			SplitVec.push_back(componente);
 		}
 
-		if (generico.tipo == "R" || generico.tipo == "I" || generico.tipo == "V") {
+		if (generico.tipo == "R" || generico.tipo == "I") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = stod(SplitVec[3]);
+		}
+		else if (generico.tipo == "V") {
+					generico.nome = SplitVec[0];
+					generico.no_A = NomearNos(SplitVec[1], lista);
+					generico.no_B = NomearNos(SplitVec[2], lista);
+					if (SplitVec[3] == "DC")	generico.valor = stod(SplitVec[4]);
+					if (SplitVec[3] == "SIN" || SplitVec[3] == "PULSE") {
+						generico.valor = 0;
+						informacoes.posicao_var.push_back(net_List.size());
+						informacoes.comp_var.push_back(SplitVec);
+					}
 		}
 		else if (generico.tipo == "G" || generico.tipo == "E" || generico.tipo == "F" || generico.tipo == "H")
 		{
@@ -136,12 +202,20 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 		}
+		else if (generico.tipo == ".") {
+			informacoes.tipo_Analise = SplitVec[0];
+			informacoes.tempo_Final = stod(SplitVec[1]);
+			informacoes.passo = stod(SplitVec[2]);
+			informacoes.metodo = SplitVec[3];
+			informacoes.passos_Tabela = stoi(SplitVec[4]);
+			//informacoes.Seila = SplitVec[5];
+		}
 		else if (generico.tipo == "*") { /* Comentário começa com "*" */
-			cout << linha << endl;
+			//cout << linha << endl;
 			ne--;
 		}
 		else {
-			cout << "Elemento desconhecido: " << linha;
+			//cout << "Elemento desconhecido: " << linha;
 			arquivo.close();
 			return(ELEMENTO_DESCONHECIDO);
 		}
@@ -154,15 +228,15 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista) {
 			}
 			net_List.push_back(generico);
 		}
-		//cout << net_List[ne - 1].nome << " " << net_List[ne - 1].no_A << " " << net_List[ne - 1].no_B << " " << net_List[ne - 1].no_C << " " << net_List[ne - 1].no_D << " " << net_List[ne - 1].valor << endl;
+		////cout << net_List[ne - 1].nome << " " << net_List[ne - 1].no_A << " " << net_List[ne - 1].no_B << " " << net_List[ne - 1].no_C << " " << net_List[ne - 1].no_D << " " << net_List[ne - 1].valor << endl;
 	}
 	arquivo.close();
 
 	ConfigurarNetList(net_List, lista);
 
-	//cout << "lista" << endl;
+	////cout << "lista" << endl;
 	//for (int index = 0; index < lista.size(); index++) {
-	//	cout << lista[index] << " : ";
+	//	//cout << lista[index] << " : ";
 	//}
 
 	return(SUCESSO);
@@ -206,7 +280,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 			lista.push_back("j" + net_List[indice].nome);
 
 			net_List[indice].j_x = num_Nos; /*Não sei o que diabos é isso*/
-			cout << net_List[indice].j_x << " / ";
+			//cout << net_List[indice].j_x << " / ";
 		}
 		/*Se o componente for uma fonte de tensão controlada por corrente é necessário acrescentar
 		duas novas variáveis de corrente*/
@@ -222,13 +296,13 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 			net_List[indice].j_x = num_Nos - 1;
 			lista.push_back("jy" + net_List[indice].nome);
 			net_List[indice].j_y = num_Nos;
-			cout << net_List[indice].j_x << " ** " << net_List[indice].j_y << " / ";
+			//cout << net_List[indice].j_x << " ** " << net_List[indice].j_y << " / ";
 		}
 	}
 
-	cout << "lista" << endl;
+	//cout << "lista" << endl;
 	for (size_t index = 0; index < lista.size(); index++) {
-		cout << lista[index] << endl;
+		//cout << lista[index] << endl;
 	}
 
 	return(SUCESSO);
@@ -241,7 +315,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 
 	matriz outSistema(num_Variaveis, vector<double>(num_Variaveis + 1, 0));
 
-	cout << endl << outSistema.size() << " " << outSistema[0].size();
+	//cout << endl << outSistema.size() << " " << outSistema[0].size();
 	/* Monta estampas */
 	for (size_t indice = 0; indice < net_List.size(); indice++) {
 		double valor_Aux;
@@ -317,9 +391,9 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 
 	for (size_t row = 1; row < outSistema.size(); row++) {
 		for (size_t col = 1; col < outSistema[row].size(); col++) {
-			cout << setw(4) << setprecision(2) << outSistema[row][col] << " ";
+			//cout << setw(4) << setprecision(2) << outSistema[row][col] << " ";
 		}
-		cout << endl;
+		//cout << endl;
 	}
 
 	sistema = outSistema;
@@ -327,12 +401,12 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 }
 //#########################################################################################################
 
-int ResolverSistema(matriz &sistema) {
+int ResolverSistema(matriz sistema, matriz &outSistema) {
 	double valor_ABS, aux;
 	size_t novo_Pivot;
 	vector<double> vetor_aux;
 
-	cout << endl;
+	//cout << endl;
 
 	for (size_t pivot = 1; pivot < sistema.size(); pivot++) {
 		valor_ABS = 0.0;
@@ -344,11 +418,11 @@ int ResolverSistema(matriz &sistema) {
 			}
 		}
 		if (pivot != novo_Pivot) {
-			//cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
+			////cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
 			vetor_aux = sistema[pivot];
 			sistema[pivot] = sistema[novo_Pivot];
 			sistema[novo_Pivot] = vetor_aux;
-			//cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
+			////cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
 		}
 
 		if (fabs(valor_ABS) < TOLG) {
@@ -365,24 +439,26 @@ int ResolverSistema(matriz &sistema) {
 					sistema[linha][indice] -= sistema[linha][pivot] * aux;
 			}
 		}
-		cout << endl;
+		//cout << endl;
 	}
 
-	for (size_t row = 1; row < sistema.size(); row++) {
-		for (size_t col = 1; col < sistema[row].size(); col++) {
-			cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
-		}
-		cout << endl;
-	}
+	outSistema = sistema;
+
+	//for (size_t row = 1; row < sistema.size(); row++) {
+	//	for (size_t col = 1; col < sistema[row].size(); col++) {
+	//		//cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
+	//	}
+		//cout << endl;
+//	}
 	return(SUCESSO);
 }
 
 
 //#########################################################################################################
 
-int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, param parametros) {
+int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, param parametros, Dados_Analise informacao) {
 
-	// 
+	//  juntar paramentros com Dados_Analise
 	if ((int)arquivo.tellp() == 0) {
 		arquivo << "t";
 		for (size_t index = 1; index < lista.size(); index++) {
@@ -390,7 +466,7 @@ int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, p
 		}
 		arquivo << " erroc" << " errol" << " erro" << " dt" << endl;
 	}
-	arquivo << parametros.tempo;
+	arquivo << informacao.tempo_Atual;
 	for (size_t index = 1; index < lista.size(); index++) {
 		arquivo << " " << sistema[index][lista.size()];
 	}

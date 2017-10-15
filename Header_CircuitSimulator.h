@@ -25,6 +25,9 @@ using namespace std;
 #define PI atan(1)*4
 
 
+
+typedef vector<vector<double>> matriz;
+
 enum error {
 	SUCESSO,
 	ARQUIVO_INEXISTENTE,
@@ -49,6 +52,34 @@ public:
 	int	j_y;
 };
 
+
+typedef vector<Componente> netlist;
+
+class Dados_Analise {
+public:
+	Dados_Analise() { tipo_Analise = ".TRAN"; tempo_Atual = 0; tempo_Final = 1; passo = 1; metodo = "TRAP"; passos_Tabela = 1; Seila = "desconhecido"; }
+	string tipo_Analise;
+	double tempo_Atual;
+	double tempo_Final;
+	double passo;
+	string metodo;
+	int passos_Tabela;
+	string Seila;
+
+	size_t numero_De_Analises;
+	
+
+	// informações dos componentes que variam com o tempo/frequencia;
+	vector<vector<string>> comp_var;
+	vector<size_t> posicao_var;
+	//vector<double> variacao_tensao;
+
+
+	int CalcularComponentesTempo(netlist &net_List);
+	int AtualizarEstampa(netlist net_List, matriz &sistema);
+	int NumeroDeOperacoes();
+};
+
 class param {
 public:
 	param() { tempo = 0; erroc = 0; errol = 0; erro = 0; dt = 0;	}
@@ -59,19 +90,20 @@ public:
 	double dt;
 };
 
-typedef vector<Componente> netlist;
-typedef vector<vector<double>> matriz;
+//typedef vector<vector<string>> compVarTempo;
 
-int ResolverSistema(matriz &sistema);
+int ResolverSistema(matriz sistema, matriz &outSistema);
 int NomearNos(string nome, vector<string> &lista);
-int ObterNetlist(string nomeArquino, netlist &netlist, vector<string> &lista);
+
+int ObterNetlist(string nomeArquino, netlist &netlist, vector<string> &lista, Dados_Analise &informacoes);
+
 int ConfigurarNetList(netlist &netList, vector<string> &lista);
 
 int Estampar(netlist netList, matriz &sistema, size_t num_Val);
 
 int ExibirResultados(matriz sistema);
 
-int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros);
+int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros, Dados_Analise informacao);
 
 
 //#########################################################################################################

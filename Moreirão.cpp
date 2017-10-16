@@ -16,13 +16,11 @@ int main(int argc, char** argv)
 	ofstream arquivo;
 	param parametros;
 	Dados_Analise dadosAnalise;
-
 	ObterNetlist((nome+".net"), net_List, lista, dadosAnalise);
 	Estampar(net_List, sistema, lista.size());
 
 	dadosAnalise.NumeroDeOperacoes();
-
-
+	arquivo.close();
 	arquivo.open(nome + ".TAB");
 	//arquivo << "[";
 	for (size_t indice = 0; indice < dadosAnalise.numero_De_Analises; indice++) {

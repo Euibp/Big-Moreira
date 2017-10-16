@@ -109,6 +109,6 @@ int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, pa
 //#########################################################################################################
 //Funções de Calculo.
 double CalcularSenoide(vector<string> seno, double tempo);
-double CalcularPulsante(vector<string> pulso, double tempo);
+double CalcularPulsante(vector<string> pulso, double tempo, double passo);
 
 

@@ -14,7 +14,7 @@
 //
 //}
 
-double CalcularPulsante(vector<string> pulso, double tempo){
+double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 	double amplitude1 = stod(pulso[4]);
 	double amplitude2 = stod(pulso[5]);
 	double t_atraso = stod(pulso[6]);
@@ -27,7 +27,6 @@ double CalcularPulsante(vector<string> pulso, double tempo){
 	if (tempo < t_atraso) {
 		return(amplitude1);
 	}
-
 	int interacao = (int)floor((tempo - t_atraso) / periodo);
 
 	if (interacao < maxInteracao) {
@@ -35,13 +34,17 @@ double CalcularPulsante(vector<string> pulso, double tempo){
 		tempo = tempo - interacao*periodo - t_atraso;
 
 		if (tempo < t_subida && t_subida != 0) {
+			if(t_subida < passo) return((tempo*(amplitude2 - amplitude1) / passo) + amplitude1);
+
 			return((tempo*(amplitude2 - amplitude1) / t_subida) + amplitude1);
 		}
 		if (tempo < t_ligada + t_subida) {
 			return(amplitude2);
 		}
 		if (tempo < (t_ligada + t_subida + t_descida) && t_descida != 0) {
-			return((tempo*(amplitude1 - amplitude2) / t_descida) + amplitude2);
+			if (t_descida < passo) return((((tempo - t_ligada - t_subida)*(amplitude1 - amplitude2) / passo) + amplitude2));
+
+			return(((tempo-t_ligada-t_subida)*(amplitude1 - amplitude2) / t_descida) + amplitude2);
 		}
 	}
 	// se não for nenhum dos casos está  desligado 
@@ -89,7 +92,7 @@ int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
 				net_List[posicao_var[index]].valor = CalcularSenoide(comp_var[index], tempo_Atual);
 			}
 			if (comp_var[index][3] == "PULSE") {
-				net_List[posicao_var[index]].valor = CalcularPulsante(comp_var[index], tempo_Atual);
+				net_List[posicao_var[index]].valor = CalcularPulsante(comp_var[index], tempo_Atual, passo);
 			}
 		}
 	

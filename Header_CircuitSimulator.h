@@ -24,6 +24,7 @@ using namespace std;
 #define TOLG 1e-9
 #define PI atan(1)*4
 
+#define RESISTOR_DE_GAMBIARRA 1e9
 
 
 typedef vector<vector<double>> matriz;
@@ -40,7 +41,7 @@ enum error {
 
 class Componente{
 public:
-	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; }
+	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; jc_0 = 0; }
 	string tipo;
 	string nome; /*Nome do componente*/
 	double valor; /*Valor do componente*/
@@ -50,6 +51,10 @@ public:
 	int	no_D; /*Se for um AmpOp, número do Nó D onde o componente está ligado OU se for uma fonte controlada, número do nó D do ramo de controle*/
 	int	j_x;
 	int	j_y;
+
+	//Auxiliares
+	double param_N;
+	double jc_0;
 };
 
 
@@ -76,7 +81,7 @@ public:
 
 
 	int CalcularComponentesTempo(netlist &net_List);
-	int AtualizarEstampa(netlist net_List, matriz &sistema);
+	int AtualizarEstampa(netlist net_List, matriz &sistema, matriz sistema_Anterior);
 	int NumeroDeOperacoes();
 };
 

@@ -75,58 +75,6 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 }
 
 //#########################################################################################################
-int Dados_Analise::NumeroDeOperacoes() {
-	numero_De_Analises = (size_t)floor(tempo_Final / passo);
-	return(SUCESSO);
-}
-
-//#########################################################################################################
-int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
-	// estou dentro da fucking classe	
-	string tipo;
-
-	for (size_t index = 0; index < comp_var.size(); index++) {
-		tipo = comp_var[index][0][0];
-		if (tipo == "V") {
-			if (comp_var[index][3] == "SIN"){
-				net_List[posicao_var[index]].valor = CalcularSenoide(comp_var[index], tempo_Atual);
-			}
-			if (comp_var[index][3] == "PULSE") {
-				net_List[posicao_var[index]].valor = CalcularPulsante(comp_var[index], tempo_Atual, passo);
-			}
-		}
-	
-	};
-
-	
-	return(SUCESSO);
-
-}
-
-//#########################################################################################################
-int Dados_Analise::AtualizarEstampa(netlist net_List, matriz &sistema) {
-	char tipo;
-	int posicao;
-
-	for (size_t indice = 0; indice < comp_var.size(); indice++){
-		posicao = posicao_var[indice];
-		tipo = comp_var[indice][0][0];
-		
-		switch (tipo) {
-		case 'V': // Fonte de Tensão Independente
-			sistema[net_List[posicao].j_x][sistema.size()] = -net_List[posicao].valor;
-			break;
-		default:
-			break;
-		}
-	}
-
-	return(SUCESSO);
-}
-
-
-
-//#########################################################################################################
 
 int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes) {
 	ifstream arquivo;
@@ -151,7 +99,6 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 
 	getline(arquivo, linha);
 	//cout << "FUCKING TITULO : " << linha << endl;
-
 	while (getline(arquivo, linha))
 	{
 		Componente generico;
@@ -205,6 +152,47 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 		}
+		else if (generico.tipo == "C") {
+			generico.nome = SplitVec[0];
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
+			generico.valor = stod(SplitVec[3]);
+			informacoes.posicao_var.push_back(net_List.size());
+			informacoes.comp_var.push_back(SplitVec);
+		}
+		else if (generico.tipo == "L") {
+			generico.nome = SplitVec[0];
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
+			generico.valor = stod(SplitVec[3]);
+			informacoes.posicao_var.push_back(net_List.size());
+			informacoes.comp_var.push_back(SplitVec);
+		}
+		else if (generico.tipo == "K") {
+			generico.nome = SplitVec[0];
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
+			generico.no_C = NomearNos(SplitVec[3], lista);
+			generico.no_D = NomearNos(SplitVec[4], lista);
+			generico.param_N = stod(SplitVec[3]);
+		}
+		//Não lineneares
+		else if (generico.tipo == "N") {
+			generico.nome = SplitVec[0];
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
+			informacoes.posicao_var.push_back(net_List.size());
+			informacoes.comp_var.push_back(SplitVec);
+		}
+		else if (generico.tipo == "$") {
+			generico.nome = SplitVec[0];
+			generico.no_A = NomearNos(SplitVec[1], lista);
+			generico.no_B = NomearNos(SplitVec[2], lista);
+			generico.no_C = NomearNos(SplitVec[3], lista);
+			generico.no_D = NomearNos(SplitVec[4], lista);
+			informacoes.posicao_var.push_back(net_List.size());
+			informacoes.comp_var.push_back(SplitVec);
+		}
 		else if (generico.tipo == ".") {
 			informacoes.tipo_Analise = SplitVec[0];
 			informacoes.tempo_Final = stod(SplitVec[1]);
@@ -214,7 +202,6 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			//informacoes.Seila = SplitVec[5];
 		}
 		else if (generico.tipo == "*") { /* Comentário começa com "*" */
-			//cout << linha << endl;
 			ne--;
 		}
 		else {
@@ -237,9 +224,9 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 
 	ConfigurarNetList(net_List, lista);
 
-	////cout << "lista" << endl;
+	//cout << "lista" << endl;
 	//for (int index = 0; index < lista.size(); index++) {
-	//	//cout << lista[index] << " : ";
+	//	cout << lista[index] << " : ";
 	//}
 
 	return(SUCESSO);
@@ -272,19 +259,17 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 	for (size_t indice = 0; indice < net_List.size(); indice++)
 	{
 		tipo = net_List[indice].tipo;
-		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O")
-		{
+		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O" || tipo == "L"){
 			num_Nos++; /*Uma variável de corrente a mais é contada*/
-			if (num_Nos > MAX_NOS)
-			{
+			if (num_Nos > MAX_NOS){
 				//printf("As correntes extra excederam o numero de variaveis permitido (%d)\n", MAX_NOS);
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			}
 			lista.push_back("j" + net_List[indice].nome);
 
-			net_List[indice].j_x = num_Nos; /*Não sei o que diabos é isso*/
-			//cout << net_List[indice].j_x << " / ";
+			net_List[indice].j_x = num_Nos; 
 		}
+
 		/*Se o componente for uma fonte de tensão controlada por corrente é necessário acrescentar
 		duas novas variáveis de corrente*/
 		else if (tipo == "H")
@@ -386,6 +371,21 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] += 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] -= 1;
 			break;
+		case 'C': // ISSO ESTÀ ERRADO
+			valor_Aux = 1/RESISTOR_DE_GAMBIARRA;
+			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
+			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
+			break;
+		case 'L': // ISSO ESTÀ ERRADO
+			valor_Aux = RESISTOR_DE_GAMBIARRA; // Vulgo resistor de Gambiarra 2
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_A] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
+			outSistema[net_List[indice].j_x][net_List[indice].j_x] += valor_Aux;
+			break;
 		default:
 			break;
 		}
@@ -442,17 +442,18 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 					sistema[linha][indice] -= sistema[linha][pivot] * aux;
 			}
 		}
+		
+		//for (size_t row = 1; row < sistema.size(); row++) {
+		//	for (size_t col = 1; col < sistema[row].size(); col++) {
+		//		cout << setw(20) << setprecision(10) << sistema[row][col] << " ";
+		//	}
+		//	cout << endl;
+		//}
 		//cout << endl;
 	}
-
+	sistema[0][sistema.size()] = 0;
 	outSistema = sistema;
 
-	//for (size_t row = 1; row < sistema.size(); row++) {
-	//	for (size_t col = 1; col < sistema[row].size(); col++) {
-	//		//cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
-	//	}
-		//cout << endl;
-//	}
 	return(SUCESSO);
 }
 

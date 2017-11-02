@@ -31,7 +31,7 @@ int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
 }
 
 //#########################################################################################################
-int Dados_Analise::AtualizarEstampa(netlist net_List, matriz &sistema, matriz sistema_Anterior) {
+int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz sistema_Anterior) {
 	char tipo;
 	size_t indice;
 	double valor_Aux, quantia_aux;
@@ -60,38 +60,60 @@ int Dados_Analise::AtualizarEstampa(netlist net_List, matriz &sistema, matriz si
 			};
 			if (tempo_Atual > 0) {
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
-				//cout << valor_Aux << endl;
-				
+				//cout << valor_Aux;
+				//cout << " :: " << sistema[net_List[indice].no_A][num_Variaveis] << endl;
+				//cout << " :: " << net_List[indice].jc_0;
 
 				if (tempo_Atual == passo) {
 					valor_Aux = (valor_Aux*quantia_aux) + (valor_Aux / RESISTOR_DE_GAMBIARRA);
 				}
 				else {
-					valor_Aux = 2*valor_Aux*quantia_aux;
+					sistema[net_List[indice].no_A][num_Variaveis] -= net_List[indice].jc_0;
+					sistema[net_List[indice].no_B][num_Variaveis] += net_List[indice].jc_0;
+
+
+					// calcula J atual
+					net_List[indice].jc_0 = valor_Aux*quantia_aux - net_List[indice].jc_0;
+					
+					// Calcula tensão atual
+					valor_Aux = valor_Aux*quantia_aux + net_List[indice].jc_0;
+					
 				}
 				//cout << valor_Aux << endl;
 
-				sistema[net_List[indice].no_A][num_Variaveis] = -sistema[net_List[indice].no_A][num_Variaveis] + valor_Aux;
-				sistema[net_List[indice].no_B][num_Variaveis] = +sistema[net_List[indice].no_A][num_Variaveis] - valor_Aux;
+				//sistema[net_List[indice].no_A][num_Variaveis] = -sistema[net_List[indice].no_A][num_Variaveis] + valor_Aux;
+				//sistema[net_List[indice].no_B][num_Variaveis] = +sistema[net_List[indice].no_A][num_Variaveis] - valor_Aux;
+
+				//cout << " :: " << sistema[net_List[indice].no_A][num_Variaveis] << endl;
+				sistema[net_List[indice].no_A][num_Variaveis] += valor_Aux;
+				sistema[net_List[indice].no_B][num_Variaveis] -= valor_Aux;
+
+				net_List[indice].jc_0 = valor_Aux;
 
 				//cout << sistema[net_List[indice].no_A][num_Variaveis] << endl;
-				//net_List[indice].jc_0 = sistema[net_List[indice].no_A][num_Variaveis] + valor_Aux;
+
 			}
 			break;
 		case 'L': // Capacitor como fonte de tensão = 0 
 			//Se tiver passo variavel não fazer isso ali em baixo
 			quantia_aux = (2*net_List[indice].valor / (passo));
 
-			if (tempo_Atual == passo) {
-				sistema[net_List[indice].j_x][net_List[indice].j_x] += quantia_aux - RESISTOR_DE_GAMBIARRA;
-			};
 			if (tempo_Atual > 0) {
+
+				if (tempo_Atual == passo) {
+					sistema[net_List[indice].j_x][net_List[indice].j_x] += quantia_aux - (1/RESISTOR_DE_GAMBIARRA);
+					
+				};
+				sistema[net_List[indice].j_x][num_Variaveis] -= net_List[indice].jc_0;
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 				valor_Aux = quantia_aux*sistema_Anterior[net_List[indice].j_x][num_Variaveis] + valor_Aux;
 
-				sistema[net_List[indice].no_A][num_Variaveis] = valor_Aux;
+			
+				sistema[net_List[indice].j_x][num_Variaveis] += valor_Aux;
+				net_List[indice].jc_0 = valor_Aux;
 			}
 			break;
+
 		default:
 			break;
 		}

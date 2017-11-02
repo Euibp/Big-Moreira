@@ -24,6 +24,11 @@ double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 	double periodo = stod(pulso[10]);
 	int maxInteracao = stoi(pulso[11]);
 
+	//Resolver o tempo do Pulso.
+	if (t_subida < passo) t_subida = passo;
+	if (t_descida < passo) t_descida = passo;
+
+
 	if (tempo < t_atraso) {
 		return(amplitude1);
 	}
@@ -34,7 +39,7 @@ double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 		tempo = tempo - interacao*periodo - t_atraso;
 
 		if (tempo < t_subida && t_subida != 0) {
-			if(t_subida < passo) return((tempo*(amplitude2 - amplitude1) / passo) + amplitude1);
+			//if(t_subida < passo) return((tempo*(amplitude2 - amplitude1) / passo) + amplitude1);
 
 			return((tempo*(amplitude2 - amplitude1) / t_subida) + amplitude1);
 		}
@@ -42,7 +47,7 @@ double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 			return(amplitude2);
 		}
 		if (tempo < (t_ligada + t_subida + t_descida) && t_descida != 0) {
-			if (t_descida < passo) return((((tempo - t_ligada - t_subida)*(amplitude1 - amplitude2) / passo) + amplitude2));
+			//if (t_descida < passo) return((((tempo - t_ligada - t_subida)*(amplitude1 - amplitude2) / passo) + amplitude2));
 
 			return(((tempo-t_ligada-t_subida)*(amplitude1 - amplitude2) / t_descida) + amplitude2);
 		}
@@ -174,7 +179,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
-			generico.param_N = stod(SplitVec[3]);
+			generico.valor = stod(SplitVec[5]);
 		}
 		//Não lineneares
 		else if (generico.tipo == "N") {
@@ -259,7 +264,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 	for (size_t indice = 0; indice < net_List.size(); indice++)
 	{
 		tipo = net_List[indice].tipo;
-		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O" || tipo == "L"){
+		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O" || tipo == "L" || tipo == "K"){
 			num_Nos++; /*Uma variável de corrente a mais é contada*/
 			if (num_Nos > MAX_NOS){
 				//printf("As correntes extra excederam o numero de variaveis permitido (%d)\n", MAX_NOS);
@@ -379,17 +384,28 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
 		case 'L': // ISSO ESTÀ ERRADO
-			valor_Aux = RESISTOR_DE_GAMBIARRA; // Vulgo resistor de Gambiarra 2
+			valor_Aux = 1/RESISTOR_DE_GAMBIARRA; // Vulgo resistor de Gambiarra 2
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_A] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
 			outSistema[net_List[indice].j_x][net_List[indice].j_x] += valor_Aux;
 			break;
+		case 'K': // ISSO ESTÀ ERRADO
+			valor_Aux = net_List[indice].valor; // Vulgo resistor de Gambiarra 2
+			outSistema[net_List[indice].no_A][net_List[indice].j_x] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].j_x] += valor_Aux;
+			outSistema[net_List[indice].no_C][net_List[indice].j_x] += 1;
+			outSistema[net_List[indice].no_D][net_List[indice].j_x] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_A] += valor_Aux;
+			outSistema[net_List[indice].j_x][net_List[indice].no_B] -= valor_Aux;
+			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
+			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
+			break;
 		default:
 			break;
 		}
-	}
+	}	
 
 
 	for (size_t row = 1; row < outSistema.size(); row++) {

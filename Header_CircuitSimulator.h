@@ -81,7 +81,7 @@ public:
 
 
 	int CalcularComponentesTempo(netlist &net_List);
-	int AtualizarEstampa(netlist net_List, matriz &sistema, matriz sistema_Anterior);
+	int AtualizarEstampa(netlist &net_List, matriz &sistema, matriz sistema_Anterior);
 	int NumeroDeOperacoes();
 };
 

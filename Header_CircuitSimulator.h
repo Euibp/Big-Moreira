@@ -86,6 +86,15 @@ public:
 	int NumeroDeOperacoes();
 };
 
+class Dados_NR {
+public:
+	infcomp comp_var;
+	vector<size_t> posicao_var;
+
+	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);
+	double CalcularValorNR(vector<string> paramNR, double valorAnterior);
+};
+
 class param {
 public:
 	param() { tempo = 0; erroc = 0; errol = 0; erro = 0; dt = 0;	}
@@ -101,7 +110,7 @@ public:
 int ResolverSistema(matriz sistema, matriz &outSistema);
 int NomearNos(string nome, vector<string> &lista);
 
-int ObterNetlist(string nomeArquino, netlist &netlist, vector<string> &lista, Dados_Analise &informacoes);
+int ObterNetlist(string nomeArquino, netlist &netlist, vector<string> &lista, Dados_Analise &informacoes, Dados_NR &infoNetownRapson);
 
 int ConfigurarNetList(netlist &netList, vector<string> &lista);
 
@@ -110,9 +119,6 @@ int Estampar(netlist netList, matriz &sistema, size_t num_Val);
 int ExibirResultados(matriz sistema);
 
 int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros, Dados_Analise informacao);
-
-
-double CalcularNewtonRapson(vector<string> paramCompNR, double valorAnterior);
 
 //#########################################################################################################
 //Funções de Calculo.

@@ -81,7 +81,7 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 
 //#########################################################################################################
 
-int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes) {
+int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes, Dados_NR &infoNetownRapson) {
 	ifstream arquivo;
 	string linha, componente;
 
@@ -186,8 +186,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
-			informacoes.posicao_var.push_back(net_List.size());
-			informacoes.comp_var.push_back(SplitVec);
+			infoNetownRapson.posicao_var.push_back(net_List.size());
+			infoNetownRapson.comp_var.push_back(SplitVec);
 		}
 		else if (generico.tipo == "$") {
 			generico.nome = SplitVec[0];
@@ -196,8 +196,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 			generico.valor = stod(SplitVec[6]);//Valor de OFF
-			informacoes.posicao_var.push_back(net_List.size());
-			informacoes.comp_var.push_back(SplitVec);
+			infoNetownRapson.posicao_var.push_back(net_List.size());
+			infoNetownRapson.comp_var.push_back(SplitVec);
 		}
 		else if (generico.tipo == ".") {
 			informacoes.tipo_Analise = SplitVec[0];

@@ -108,23 +108,6 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 				net_List[indice].jc_0 = valor_Aux;
 			}
 			break;
-		case '$':
-			//Removendo valores anteriores
-			if (tempo_Atual > 0) {
-				sistema[net_List[indice].no_A][net_List[indice].no_A] -= net_List[indice].valor;
-				sistema[net_List[indice].no_B][net_List[indice].no_B] -= net_List[indice].valor;
-				sistema[net_List[indice].no_A][net_List[indice].no_B] += net_List[indice].valor;
-				sistema[net_List[indice].no_B][net_List[indice].no_A] += net_List[indice].valor;
-
-				valor_Aux = sistema_Anterior[net_List[indice].no_C][num_Variaveis] - sistema_Anterior[net_List[indice].no_D][num_Variaveis];
-				net_List[indice].valor = CalcularNewtonRapson(comp_var[intera], valor_Aux);
-
-				sistema[net_List[indice].no_A][net_List[indice].no_A] += net_List[indice].valor;
-				sistema[net_List[indice].no_B][net_List[indice].no_B] += net_List[indice].valor;
-				sistema[net_List[indice].no_A][net_List[indice].no_B] -= net_List[indice].valor;
-				sistema[net_List[indice].no_B][net_List[indice].no_A] -= net_List[indice].valor;
-			}
-			break;
 		default:
 			break;
 

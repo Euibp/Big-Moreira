@@ -17,16 +17,18 @@ int main(int argc, char** argv)
 	ofstream arquivo;
 	param parametros;
 	Dados_Analise dadosAnalise;
-	erro = ObterNetlist((nome+".net"), net_List, lista, dadosAnalise);
+	Dados_NR dadosNR;
+
+	erro = ObterNetlist((nome+".net"), net_List, lista, dadosAnalise, dadosNR);
 	Estampar(net_List, sistema, lista.size());
 
-	for (size_t row = 1; row < sistema.size(); row++) {
-		for (size_t col = 1; col < sistema[row].size(); col++) {
-			cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl;
+	//for (size_t row = 1; row < sistema.size(); row++) {
+	//	for (size_t col = 1; col < sistema[row].size(); col++) {
+	//		cout << setw(4) << setprecision(2) << sistema[row][col] << " ";
+	//	}
+	//	cout << endl;
+	//}
+	//cout << endl;
 
 
 	dadosAnalise.NumeroDeOperacoes();
@@ -62,6 +64,7 @@ int main(int argc, char** argv)
 		//	cout << endl;
 		//}
 		//arquivo << sistema[1][sistema.size()] << ";" ;
+		dadosNR.CalcularNewtonRapson(net_List, sistema, sistemaResolvido);
 		SalvarResultados(arquivo, lista, sistemaResolvido, parametros, dadosAnalise);
 
 		dadosAnalise.tempo_Atual += dadosAnalise.passo;

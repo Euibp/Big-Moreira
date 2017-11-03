@@ -39,6 +39,7 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 	size_t num_Variaveis = sistema.size();
 	for (size_t intera = 0; intera < comp_var.size(); intera++) {
 		indice = posicao_var[intera];
+		// Presta atenção nessa praga
 		tipo = comp_var[intera][0][0];
 
 		switch (tipo) {
@@ -48,15 +49,15 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 
 		case 'C': // Capacitor como fonte de tensão = 0 
 			//Se tiver passo variavel não fazer isso ali em baixo
-			
+
 			quantia_aux = ((2 * net_List[indice].valor) / passo);
 
 			if (tempo_Atual == passo) {
-				sistema[net_List[indice].no_A][net_List[indice].no_A] += quantia_aux - 1/RESISTOR_DE_GAMBIARRA;
-				sistema[net_List[indice].no_B][net_List[indice].no_B] += quantia_aux - 1/RESISTOR_DE_GAMBIARRA;
-				sistema[net_List[indice].no_A][net_List[indice].no_B] -= quantia_aux - 1/RESISTOR_DE_GAMBIARRA;
-				sistema[net_List[indice].no_B][net_List[indice].no_A] -= quantia_aux - 1/RESISTOR_DE_GAMBIARRA;
-				
+				sistema[net_List[indice].no_A][net_List[indice].no_A] += quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
+				sistema[net_List[indice].no_B][net_List[indice].no_B] += quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
+				sistema[net_List[indice].no_A][net_List[indice].no_B] -= quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
+				sistema[net_List[indice].no_B][net_List[indice].no_A] -= quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
+
 			};
 			if (tempo_Atual > 0) {
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
@@ -74,17 +75,11 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 
 					// calcula J atual
 					net_List[indice].jc_0 = valor_Aux*quantia_aux - net_List[indice].jc_0;
-					
+
 					// Calcula tensão atual
 					valor_Aux = valor_Aux*quantia_aux + net_List[indice].jc_0;
-					
+
 				}
-				//cout << valor_Aux << endl;
-
-				//sistema[net_List[indice].no_A][num_Variaveis] = -sistema[net_List[indice].no_A][num_Variaveis] + valor_Aux;
-				//sistema[net_List[indice].no_B][num_Variaveis] = +sistema[net_List[indice].no_A][num_Variaveis] - valor_Aux;
-
-				//cout << " :: " << sistema[net_List[indice].no_A][num_Variaveis] << endl;
 				sistema[net_List[indice].no_A][num_Variaveis] += valor_Aux;
 				sistema[net_List[indice].no_B][num_Variaveis] -= valor_Aux;
 
@@ -96,29 +91,45 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 			break;
 		case 'L': // Capacitor como fonte de tensão = 0 
 			//Se tiver passo variavel não fazer isso ali em baixo
-			quantia_aux = (2*net_List[indice].valor / (passo));
+			quantia_aux = (2 * net_List[indice].valor / (passo));
 
 			if (tempo_Atual > 0) {
 
 				if (tempo_Atual == passo) {
-					sistema[net_List[indice].j_x][net_List[indice].j_x] += quantia_aux - (1/RESISTOR_DE_GAMBIARRA);
-					
+					sistema[net_List[indice].j_x][net_List[indice].j_x] += quantia_aux - (1 / RESISTOR_DE_GAMBIARRA);
+
 				};
 				sistema[net_List[indice].j_x][num_Variaveis] -= net_List[indice].jc_0;
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 				valor_Aux = quantia_aux*sistema_Anterior[net_List[indice].j_x][num_Variaveis] + valor_Aux;
 
-			
+
 				sistema[net_List[indice].j_x][num_Variaveis] += valor_Aux;
 				net_List[indice].jc_0 = valor_Aux;
 			}
 			break;
+		case '$':
+			//Removendo valores anteriores
+			if (tempo_Atual > 0) {
+				sistema[net_List[indice].no_A][net_List[indice].no_A] -= net_List[indice].valor;
+				sistema[net_List[indice].no_B][net_List[indice].no_B] -= net_List[indice].valor;
+				sistema[net_List[indice].no_A][net_List[indice].no_B] += net_List[indice].valor;
+				sistema[net_List[indice].no_B][net_List[indice].no_A] += net_List[indice].valor;
 
+				valor_Aux = sistema_Anterior[net_List[indice].no_C][num_Variaveis] - sistema_Anterior[net_List[indice].no_D][num_Variaveis];
+				net_List[indice].valor = CalcularNewtonRapson(comp_var[intera], valor_Aux);
+
+				sistema[net_List[indice].no_A][net_List[indice].no_A] += net_List[indice].valor;
+				sistema[net_List[indice].no_B][net_List[indice].no_B] += net_List[indice].valor;
+				sistema[net_List[indice].no_A][net_List[indice].no_B] -= net_List[indice].valor;
+				sistema[net_List[indice].no_B][net_List[indice].no_A] -= net_List[indice].valor;
+			}
+			break;
 		default:
 			break;
+
 		}
 	}
-
 	return(SUCESSO);
 }
 

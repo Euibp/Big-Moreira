@@ -195,6 +195,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
+			generico.valor = stod(SplitVec[6]);//Valor de OFF
 			informacoes.posicao_var.push_back(net_List.size());
 			informacoes.comp_var.push_back(SplitVec);
 		}
@@ -358,7 +359,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
 			break;
-		case 'H': // // Fonte de corrente controlada por tensão
+		case 'H': // // Fonte de tensao controlada por tensão
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].j_y] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_y] -= 1;
@@ -391,7 +392,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
 			outSistema[net_List[indice].j_x][net_List[indice].j_x] += valor_Aux;
 			break;
-		case 'K': // ISSO ESTÀ ERRADO
+		case 'K':
 			valor_Aux = net_List[indice].valor; // Vulgo resistor de Gambiarra 2
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] += valor_Aux;
@@ -401,6 +402,13 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
+			break;
+		case '$': //Chave
+			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia
+			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
+			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
 		default:
 			break;

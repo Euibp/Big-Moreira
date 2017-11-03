@@ -28,6 +28,7 @@ using namespace std;
 
 
 typedef vector<vector<double>> matriz;
+typedef vector<vector<string>> infcomp;
 
 enum error {
 	SUCESSO,
@@ -75,7 +76,7 @@ public:
 	
 
 	// informações dos componentes que variam com o tempo/frequencia;
-	vector<vector<string>> comp_var;
+	infcomp comp_var;
 	vector<size_t> posicao_var;
 	//vector<double> variacao_tensao;
 
@@ -95,7 +96,7 @@ public:
 	double dt;
 };
 
-//typedef vector<vector<string>> compVarTempo;
+//typedef infcomp compVarTempo;
 
 int ResolverSistema(matriz sistema, matriz &outSistema);
 int NomearNos(string nome, vector<string> &lista);
@@ -110,6 +111,8 @@ int ExibirResultados(matriz sistema);
 
 int SalvarResultados(ofstream &arquivo,vector<string> &lista ,matriz sistema, param parametros, Dados_Analise informacao);
 
+
+double CalcularNewtonRapson(vector<string> paramCompNR, double valorAnterior);
 
 //#########################################################################################################
 //Funções de Calculo.

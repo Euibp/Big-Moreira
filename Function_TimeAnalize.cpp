@@ -14,12 +14,12 @@ int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
 
 	for (size_t index = 0; index < comp_var.size(); index++) {
 		tipo = comp_var[index][0][0];
-		if (tipo == "V") {
+		if (tipo == "V" || tipo == "I") {
 			if (comp_var[index][3] == "SIN") {
-				net_List[posicao_var[index]].valor = CalcularSenoide(comp_var[index], tempo_Atual);
+				net_List[posicao_var[index]].valor_novo = CalcularSenoide(comp_var[index], tempo_Atual);
 			}
 			if (comp_var[index][3] == "PULSE") {
-				net_List[posicao_var[index]].valor = CalcularPulsante(comp_var[index], tempo_Atual, passo);
+				net_List[posicao_var[index]].valor_novo = CalcularPulsante(comp_var[index], tempo_Atual, passo);
 			}
 		}
 
@@ -44,7 +44,13 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 
 		switch (tipo) {
 		case 'V': // Fonte de Tensão Independente
-			sistema[net_List[indice].j_x][sistema.size()] = -net_List[indice].valor;
+			sistema[net_List[indice].j_x][sistema.size()] -= net_List[indice].valor_novo - net_List[indice].valor ;
+			net_List[indice].valor = net_List[indice].valor_novo;
+			break;
+		case 'I': // Fonte de Tensão Independente
+			sistema[net_List[indice].no_A][num_Variaveis] -= net_List[indice].valor_novo - net_List[indice].valor;
+			sistema[net_List[indice].no_B][num_Variaveis] += net_List[indice].valor_novo - net_List[indice].valor;
+			net_List[indice].valor = net_List[indice].valor_novo;
 			break;
 
 		case 'C': // Capacitor como fonte de tensão = 0 

@@ -42,10 +42,12 @@ enum error {
 
 class Componente{
 public:
-	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; jc_0 = 0; }
+	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; jc_0 = 0; valor_novo = 0; Io = 0; }
 	string tipo;
 	string nome; /*Nome do componente*/
 	double valor; /*Valor do componente*/
+	double valor_novo;
+	double Io;
 	int no_A; /*Número do Nó A onde o componente está ligado*/
 	int	no_B; /*Número do Nó B onde o componente está ligado*/
 	int	no_C; /*Se for um AmpOp, número do Nó C onde o componente está ligado OU se for uma fonte controlada, número do nó C do ramo de controle*/
@@ -92,7 +94,8 @@ public:
 	vector<size_t> posicao_var;
 
 	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);
-	double CalcularValorNR(vector<string> paramNR, double valorAnterior);
+	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor);
+	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);
 };
 
 class param {

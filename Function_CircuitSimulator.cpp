@@ -123,13 +123,13 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			SplitVec.push_back(componente);
 		}
 
-		if (generico.tipo == "R" || generico.tipo == "I") {
+		if (generico.tipo == "R" ) {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = stod(SplitVec[3]);
 		}
-		else if (generico.tipo == "V") {
+		else if (generico.tipo == "V" || generico.tipo == "I") {
 					generico.nome = SplitVec[0];
 					generico.no_A = NomearNos(SplitVec[1], lista);
 					generico.no_B = NomearNos(SplitVec[2], lista);
@@ -186,8 +186,11 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
+			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) /(stod(SplitVec[5]) - stod(SplitVec[3]));
+			generico.Io = 0; //stod(SplitVec[6]) - generico.valor*(stod(SplitVec[5]));
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
+
 		}
 		else if (generico.tipo == "$") {
 			generico.nome = SplitVec[0];
@@ -402,6 +405,13 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
+			break;
+		case 'N': //Chave
+			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia
+			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
+			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
+			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
 		case '$': //Chave
 			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia

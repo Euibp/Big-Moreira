@@ -1,13 +1,21 @@
+/*Simulador de Circuitos Elétricos*/
+/*By Igor Bandeira Pandolfi, Gabriel Morgado Fonseca, Marina Lacerda*/
+/*Este arquivo contém a implementação dos métodos da classe Dados_Analise*/
+
 #include "stdafx.h"
 #include "Header_CircuitSimulator.h"
 
 //#########################################################################################################
+//#########################################################################################################
+
 int Dados_Analise::NumeroDeOperacoes() {
 	numero_De_Analises = (size_t)floor(tempo_Final / passo);
 	return(SUCESSO);
 }
 
 //#########################################################################################################
+//#########################################################################################################
+
 int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
 	// estou dentro da fucking classe	
 	string tipo;
@@ -27,10 +35,11 @@ int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
 
 
 	return(SUCESSO);
-
 }
 
 //#########################################################################################################
+//#########################################################################################################
+
 int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz sistema_Anterior) {
 	char tipo;
 	size_t indice;
@@ -122,4 +131,5 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 	return(SUCESSO);
 }
 
+/*----------------------------------FIM-------------------------------------------------------------------------------------------------------------------------------*/
 

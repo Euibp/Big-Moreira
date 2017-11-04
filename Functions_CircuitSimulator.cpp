@@ -1,86 +1,88 @@
+/*Simulador de Circuitos Elétricos*/
+/*By Igor Bandeira Pandolfi, Gabriel Morgado Fonseca, Marina Lacerda*/
+/*Este arquivo contém os códigos das funções e métodos utilizados no programa, que não tenham a ver explicitamente com
+  Método de Newton-Raphson e Análise no Tempo*/
+
 #include "stdafx.h"
 #include "Header_CircuitSimulator.h"
 
-//int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista, param parameter) {
-//	if (generico.tipo == "V") {
-//		generico.nome = SplitVec[0];
-//		generico.no_A = NomearNos(SplitVec[1], lista);
-//		generico.no_B = NomearNos(SplitVec[2], lista);
-//		if (SplitVec[3] == "DC")	generico.valor = stod(SplitVec[3]);
-//		if (SplitVec[3] == "SIN")  generico.valor = CalcularSenoide(SplitVec,0);
-//		if (SplitVec[3] == "PULSE")  generico.valor = CalcularPulsante(SplitVec, 0);
-//		}
-//	}
-//
-//}
+//#########################################################################################################
+//#########################################################################################################
 
+/*Esta função calcula o valor de uma fonte pulsante em cada instante de tempo*/
 double CalcularPulsante(vector<string> pulso, double tempo, double passo){
-	double amplitude1 = stod(pulso[4]);
-	double amplitude2 = stod(pulso[5]);
-	double t_atraso = stod(pulso[6]);
-	double t_subida = stod(pulso[7]);
-	double t_descida = stod(pulso[8]);
-	double t_ligada = stod(pulso[9]);
-	double periodo = stod(pulso[10]);
-	int maxInteracao = stoi(pulso[11]);
 
-	//Resolver o tempo do Pulso.
-	if (t_subida < passo) t_subida = passo;
-	if (t_descida < passo) t_descida = passo;
+	/*Variáveis*/
+	double amplitude1 = stod(pulso[4]);		/*Amplitude da fonte quando ela está desligada*/
+	double amplitude2 = stod(pulso[5]);		/*Amplitude da fonte quando ela está ligada*/
+	double t_atraso = stod(pulso[6]);		/*Tempo que a fonte demora para ligar*/
+	double t_subida = stod(pulso[7]);		/*Tempo de transição de estados: desligada --> ligada*/
+	double t_descida = stod(pulso[8]);		/*Tempo de transição de estados: ligada --> desligada*/
+	double t_ligada = stod(pulso[9]);		/*Tempo que a fonte fica ligada*/
+	double periodo = stod(pulso[10]);		/*Período de um pulso*/
+	int maxInteracao = stoi(pulso[11]);		/*Número de ciclos*/
 
+	/*Tratamento de descontinuidades*/
+	if (t_subida < passo) 
+		t_subida = passo;
+	if (t_descida < passo) 
+		t_descida = passo;
 
-	if (tempo < t_atraso) {
+	/*Programação do pulso*/
+	if (tempo < t_atraso) {																	/*Antes de ligar a fonte tem amplitude de desligada*/
 		return(amplitude1);
 	}
-	int interacao = (int)floor((tempo - t_atraso) / periodo);
 
-	if (interacao < maxInteracao) {
+	int interacao = (int)floor((tempo - t_atraso) / periodo);								/*Esta variável guarda a informação de em qual ciclo a fonte está*/
 
+	if (interacao < maxInteracao) {															
 		tempo = tempo - interacao*periodo - t_atraso;
-
 		if (tempo < t_subida && t_subida != 0) {
-			//if(t_subida < passo) return((tempo*(amplitude2 - amplitude1) / passo) + amplitude1);
-
 			return((tempo*(amplitude2 - amplitude1) / t_subida) + amplitude1);
 		}
 		if (tempo < t_ligada + t_subida) {
 			return(amplitude2);
 		}
 		if (tempo < (t_ligada + t_subida + t_descida) && t_descida != 0) {
-			//if (t_descida < passo) return((((tempo - t_ligada - t_subida)*(amplitude1 - amplitude2) / passo) + amplitude2));
-
 			return(((tempo-t_ligada-t_subida)*(amplitude1 - amplitude2) / t_descida) + amplitude2);
 		}
 	}
-	// se não for nenhum dos casos está  desligado 
 	return(amplitude1);
-
-}
-
-
-double CalcularSenoide(vector<string> seno, double tempo) {
-	double thetaTemp, expTemp;
-
-	double nivelDC = stod(seno[4]);
-	double amplitude = stod(seno[5]);
-	double frequencia = stod(seno[6]);
-	double atraso = stod(seno[7]);
-	double alpha = stod(seno[8]);
-	double phi = stod(seno[9]);
-	double maxInteracao = stod(seno[10]);
-
-	if (tempo > (maxInteracao / frequencia)) {
-		return(nivelDC);
-	}
-
-	thetaTemp = (2 * PI*frequencia*(tempo - atraso)) + (PI / 180)*phi;
-	expTemp = exp(-alpha*(tempo - atraso));
-	return (nivelDC + amplitude*expTemp*sin(thetaTemp));
-
+	/*A função retorna o valor da fonte pulsante em um determinado instante de tempo t*/
 }
 
 //#########################################################################################################
+//#########################################################################################################
 
+/*Esta função calcula o valor de uma fonte senoidal em cada instante de tempo*/
+double CalcularSenoide(vector<string> seno, double tempo) {
+	
+	/*Variáveis*/
+	double thetaTemp; 
+	double expTemp;
+	double nivelDC = stod(seno[4]);			/*Nível DC da senoide*/
+	double amplitude = stod(seno[5]);		/*Amplitude da senoide*/
+	double frequencia = stod(seno[6]);		/*Frequência da senoide*/
+	double atraso = stod(seno[7]);			/*Tempo de atraso*/
+	double alpha = stod(seno[8]);			/*Fator de amortecimento*/
+	double phi = stod(seno[9]);				/*Fator de definição da fase*/
+	double maxInteracao = stod(seno[10]);	/*Número de ciclos*/
+
+	/*Programação do pulso*/
+	if (tempo > (maxInteracao / frequencia)) {
+		return(nivelDC);
+	}
+	thetaTemp = (2 * PI*frequencia*(tempo - atraso)) + (PI / 180)*phi;
+	expTemp = exp(-alpha*(tempo - atraso));
+	
+	/*A função retorna o valor da fonte senoidal em um determinado instante de tempo t*/
+	return (nivelDC + amplitude*expTemp*sin(thetaTemp));
+}
+
+//#########################################################################################################
+//#########################################################################################################
+
+/*Ao rodar essa função o programa lê o netlist do circuito a ser analisado a partir do arquivo .NET de entrada*/
 int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes, Dados_NR &infoNetownRapson) {
 	ifstream arquivo;
 	string linha, componente;
@@ -242,7 +244,9 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 };
 
 //#########################################################################################################
+//#########################################################################################################
 
+/*Ao rodar essa função os nós do circuito a ser analisado são nomeados*/
 int NomearNos(string nome, vector<string> &lista) {
 	int outNum;
 
@@ -256,11 +260,10 @@ int NomearNos(string nome, vector<string> &lista) {
 	return(outNum);
 }
 
-
+//#########################################################################################################
 //#########################################################################################################
 
-
-
+/*Ao rodar essa função o programa define as tensões e correntes a serem calculadas*/
 int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 	string tipo;
 	unsigned int num_Nos = lista.size() - 1;
@@ -305,9 +308,11 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 	return(SUCESSO);
 }
 
-
+//#########################################################################################################
 //#########################################################################################################
 
+/*Essa função preenche o sistema de equações a ser resolvido adicionando ao mesmo as estampas de cada componente do circuito sob análise*/
+/*Em caso de componentes não lineares ou variantes no tempo, as estampas dos mesmos são modificadas em outro momento por outras funções ou métodos*/
 int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 
 	matriz outSistema(num_Variaveis, vector<double>(num_Variaveis + 1, 0));
@@ -436,8 +441,11 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 	sistema = outSistema;
 	return(SUCESSO);
 }
+
+//#########################################################################################################
 //#########################################################################################################
 
+/*Esta função resolve um sistema de equações*/
 int ResolverSistema(matriz sistema, matriz &outSistema) {
 	double valor_ABS, aux;
 	size_t novo_Pivot;
@@ -491,9 +499,10 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 	return(SUCESSO);
 }
 
-
+//#########################################################################################################
 //#########################################################################################################
 
+/*Ao rodar essa função o programa gera o arquivo .TAB de saída*/
 int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, param parametros, Dados_Analise informacao) {
 
 	//  juntar paramentros com Dados_Analise
@@ -514,6 +523,4 @@ int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, p
 	return(SUCESSO);
 }
 
-
-
-int ExibirResultados(matriz sistema);
+/*----------------------------------FIM-------------------------------------------------------------------------------------------------------------------------------*/

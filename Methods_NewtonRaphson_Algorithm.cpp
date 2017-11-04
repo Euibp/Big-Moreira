@@ -1,7 +1,12 @@
+/*Simulador de Circuitos Elétricos*/
+/*By Igor Bandeira Pandolfi, Gabriel Morgado Fonseca, Marina Lacerda*/
+/*Este arquivo contém a implementação dos métodos da classe Dados_NR*/
+
 #include "stdafx.h"
 #include "Header_CircuitSimulator.h"
 
-#define MAX_INTERACAO_NR 20
+//#########################################################################################################
+//#########################################################################################################
 
 int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior) {
 	char tipo;
@@ -88,6 +93,9 @@ int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &s
 	return(0);
 }
 
+//#########################################################################################################
+//#########################################################################################################
+
 int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t indice , double novo_valor) {
 	if (tipo == 'N' || tipo == '$') {
 		sistema[net_List[indice].no_A][net_List[indice].no_A] += novo_valor - net_List[indice].valor;
@@ -99,6 +107,9 @@ int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t in
 	}
 	return(0);
 }
+
+//#########################################################################################################
+//#########################################################################################################
 
 double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, double &Io) {
 	char tipo = paramNR[0][0];
@@ -139,3 +150,5 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 	}
 	return(0);
 }
+
+/*----------------------------------FIM-------------------------------------------------------------------------------------------------------------------------------*/

@@ -189,7 +189,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) /(stod(SplitVec[5]) - stod(SplitVec[3]));
-			generico.Io = 0; //stod(SplitVec[6]) - generico.valor*(stod(SplitVec[5]));
+			generico.Io = 0;//stod(SplitVec[6]) - generico.valor*(stod(SplitVec[5]));
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
 
@@ -417,6 +417,8 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
 			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
+			outSistema[net_List[indice].no_A][num_Variaveis] += net_List[indice].Io;
+			outSistema[net_List[indice].no_B][num_Variaveis] -= net_List[indice].Io;
 			break;
 		case '$': //Chave
 			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia

@@ -27,7 +27,6 @@ using namespace std;
 #define TOLG 1e-9
 #define PI atan(1)*4				/*Definição do clássico número PI*/
 #define RESISTOR_DE_GAMBIARRA 1e9	/*Resistor utilizado no cálculo do ponto de operação de circuitos com capacitores e indutores*/
-#define MAX_INTERACAO_NR 20			/*Número máximo de interações utilizando Newton-Raphson*/
 
 /*Códigos de Erro que o Programa Retorna*/
 enum error 
@@ -39,13 +38,17 @@ enum error
 	ELEMENTO_DESCONHECIDO,						/*Caso o arquivo .NET fornecido como entrada possua um elemento desconhecido*/
 	NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES,		/*Caso o número de correntes adicionadas ao circuito pelo programa exceda um valor máximo*/
 	SISTEMA_SINGULAR,							/*Caso, ao resolver um sistema de equações, o programa se deparar com um sistema singular*/
-	ERRO_ABERTURA_ARQUIVO						/*Caso, ao tentar abrir um arquivo, o programa não consiga*/
+	ERRO_ABERTURA_ARQUIVO,						/*Caso, ao tentar abrir um arquivo, o programa não consiga*/
+	
+	
+	ESTABILIZOU,
+	ERRO_DE_ESTABILIZACAO
 };
 
 /*Classe que contém os atributos de um componente genérico que um circuito pode ter*/
 class Componente{
 public:
-	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; jc_0 = 0; valor_novo = 0; Io = 0; }	/*Construtor da classe*/
+	Componente() { nome = ""; valor = 0.0; no_A = 0; no_B = 0; no_C = 0; no_D = 0; j_x = 0; j_y = 0; jc_0 = 0; valor_novo = 0; Io = 0; gmin = 0; }	/*Construtor da classe*/
 	string tipo;			/*Qual componente é? R? C? L?*/
 	string nome;			/*Nome fantasia do componente. Ex: R0100*/
 	double valor;			/*Valor do componente*/
@@ -55,10 +58,11 @@ public:
 	int	no_D;				/*Se for um AmpOp, número do Nó D onde o componente está ligado OU se for uma fonte controlada(chave), número do nó D do ramo de controle*/
 	int	j_x;				/*Nó de partida de corrente passando pelo componente ou pelo ramo de controle*/
 	int	j_y;				/*Nó de chegada de corrente passando pelo componente ou pelo ramo de controle*/
-	double param_N;			/*Parâmetro n de um transformador ideal*/
 	double valor_novo;		/*Variável auxiliar para armezenar um valor*/
 	double Io;				/*Variável auxiliar para armezenar um valor inicial de corrente*/						
 	double jc_0;			/*Variável auxiliar para armezenar um valor inicial de corrente*/
+
+	double gmin;
 };
 
 /*Tipos de Variável Utilizados*/
@@ -96,6 +100,8 @@ public:
 	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson */
 	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor); /*Atualiza a estampa dos componentes não lineares durante a análise*/
 	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);
+	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);
+	int InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);
 };
 
 /*Classe que armazena as informações a serem impressas no arquivo .TAB de saída*/

@@ -24,7 +24,7 @@ using namespace std;
 #define MAX_COMPONENTE 100			/*Tamanho máximo de componentes em um arquivo .NET*/
 #define MAX_NOS 100					/*Tamanho máximo de nós que um circuito, definido em um arquivo .NET, pode ter*/
 #define MAX_CORRENTES_EXTRAS 50		/*Máximo número de correntes que o programa pode adicionar a um circuito para calcular correntes em ramos*/
-#define TOLG 1e-9
+#define TOLG 1e-9					/*Tolerância para determinante, a fim de detectar se um sistema é singular */
 #define PI atan(1)*4				/*Definição do clássico número PI*/
 #define RESISTOR_DE_GAMBIARRA 1e9	/*Resistor utilizado no cálculo do ponto de operação de circuitos com capacitores e indutores*/
 
@@ -39,10 +39,10 @@ enum error
 	NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES,		/*Caso o número de correntes adicionadas ao circuito pelo programa exceda um valor máximo*/
 	SISTEMA_SINGULAR,							/*Caso, ao resolver um sistema de equações, o programa se deparar com um sistema singular*/
 	ERRO_ABERTURA_ARQUIVO,						/*Caso, ao tentar abrir um arquivo, o programa não consiga*/
-	
-	
-	ESTABILIZOU,
-	ERRO_DE_ESTABILIZACAO
+	ESTABILIZOU,								/*Caso uma análise com elementos não-lineares tenha estabilizado*/
+	ERRO_DE_ESTABILIZACAO,						/*Caso uma análise com elementos não-lineares não tenha estabilizado*/
+	ERRO_ESTAMPA_NAO_LINEAR,					/*Caso não exista chaves ou resistores não lineares e uma atualização de estampa para elementos não lineares for pedida*/
+	ERRO_COMPONENTE_NAO_CALCULADO,				/*Caso não exista cgaves ou resistores não lineares e um calculo desses componentes foi solicitado*/
 };
 
 /*Classe que contém os atributos de um componente genérico que um circuito pode ter*/
@@ -52,17 +52,20 @@ public:
 	string tipo;			/*Qual componente é? R? C? L?*/
 	string nome;			/*Nome fantasia do componente. Ex: R0100*/
 	double valor;			/*Valor do componente*/
+
 	int no_A;				/*Número do Nó A onde o componente está ligado*/
 	int	no_B;				/*Número do Nó B onde o componente está ligado*/
 	int	no_C;				/*Se for um AmpOp, número do Nó C onde o componente está ligado OU se for uma fonte controlada(chave), número do nó C do ramo de controle*/
 	int	no_D;				/*Se for um AmpOp, número do Nó D onde o componente está ligado OU se for uma fonte controlada(chave), número do nó D do ramo de controle*/
+
 	int	j_x;				/*Nó de partida de corrente passando pelo componente ou pelo ramo de controle*/
 	int	j_y;				/*Nó de chegada de corrente passando pelo componente ou pelo ramo de controle*/
+
 	double valor_novo;		/*Variável auxiliar para armezenar um valor*/
 	double Io;				/*Variável auxiliar para armezenar um valor inicial de corrente*/						
 	double jc_0;			/*Variável auxiliar para armezenar um valor inicial de corrente*/
 
-	double gmin;
+	double gmin;			/*Valor de condutância utilizada no processo de Gmin stepping*/
 };
 
 /*Tipos de Variável Utilizados*/
@@ -97,9 +100,9 @@ public:
 	vector<size_t> posicao_var;
 
 	/*Métodos que pertencem à classe*/
-	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson */
+	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson*/
 	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor); /*Atualiza a estampa dos componentes não lineares durante a análise*/
-	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);
+	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);				/*Calcula o próximo valor de um componente não linear*/
 	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);
 	int InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);
 };

@@ -71,8 +71,8 @@ public:
 	int	j_y;				/*Nó de chegada de corrente passando pelo componente ou pelo ramo de controle*/
 
 	double valor_novo;		/*Variável auxiliar para armezenar um valor*/
-	double Io;				/*Variável auxiliar para armezenar um valor inicial de corrente*/						
-	double jc_0;			/*Variável auxiliar para armezenar um valor inicial de corrente*/
+	double Io;				/*Variável auxiliar para armezenar um valor inicial de corrente em Newton-Raphson*/						
+	double jc_0;			/*Variável auxiliar para armezenar um valor de corrente em capacitores*/
 
 	double gmin;			/*Valor de condutância utilizada no processo de Gmin stepping*/
 };

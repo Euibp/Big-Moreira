@@ -45,6 +45,7 @@ int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &s
 
 		/*O número de iterações já realizadas é pego aqui. Esse número não pode ultrapassar um certo valor*/
 		contadorInteracao = InteracaoNR(sistema, net_List, sistema_Anterior, verifica_Convergencia);
+
 		if (contadorInteracao <= MAX_INTERACAO_NR && Gmin_Comecou == false)
 			break;
 
@@ -63,9 +64,11 @@ int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &s
 			/*Se o componente for um resistor linear por partes*/
 			case 'N':
 				erroGmin = GminStep(sistema, net_List, tipo, indice, verifica_Convergencia[indice_NL],fator_divisao[indice_NL]);
-				if (erroGmin != ESTABILIZOU) contadorDiferencial++;
-				if (erroGmin == ERRO_DE_ESTABILIZACAO) return(erroGmin);
-				verifica_Convergencia[indice_NL] = true;
+				if (erroGmin != ESTABILIZOU) 
+					contadorDiferencial++;
+				if (erroGmin == ERRO_DE_ESTABILIZACAO) 
+					return(erroGmin);
+				verifica_Convergencia[indice_NL] = true;			/*A flag em questão é resetada*/
 				break;
 
 			/*Se o componente não for um resistor linear por partes*/
@@ -76,32 +79,6 @@ int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &s
 
 		ResolverSistema(sistema, sistema_Anterior);
 	}
-
-	/*A partir do momento que todos os componentes convergirem o método passa a essa parte*/
-	/*Esse loop acontece tantas vezes quantas forem os elementos não lineares do circuito*/
-	for (size_t indice_NL = 0; indice_NL < comp_var.size(); indice_NL++) {
-		double valor_Aux;
-		double novo_valor;
-		double Io;
-		size_t num_Variaveis = sistema.size();
-
-		/*O tipo do componente a ser tratado é pego aqui*/
-		indice = posicao_var[indice_NL];
-		tipo = comp_var[indice_NL][0][0];
-		switch (tipo) {
-
-		/*Se o componente for um resistor linear por partes*/
-		case 'N':
-			valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
-			novo_valor = CalcularValorNR(comp_var[indice_NL], valor_Aux, Io);
-			break;
-
-		/*Se o componente não for um resistor linear por partes*/
-		default:
-			break;
-		}
-	}
-
 	return(SUCESSO);
 }
 
@@ -305,36 +282,9 @@ int Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_An
 		}
 
 		ResolverSistema(sistema, sistema_Anterior);
-		//contadorInteracao++;
 		if (contadorDiferencial == 0) break;
 	}
 	return(contadorInteracao);
 }
 
 /*----------------------------------FIM-------------------------------------------------------------------------------------------------------------------------------*/
-
-
-
-//// Parte que resolve Problemas de Estabilização
-//for (size_t indice_NL = 0; indice_NL < comp_var.size(); indice_NL++) {
-//	indice = posicao_var[indice_NL];
-//	// Presta atenção nessa praga
-//	tipo = comp_var[indice_NL][0][0];
-//	switch (tipo) {
-//	case 'N':
-//		EstampaNR(sistema, net_List, tipo, indice, net_List_Inicial[indice].valor);
-//		sistema[net_List[indice].no_A][num_Variaveis] += net_List_Inicial[indice].Io - net_List[indice].Io;
-//		sistema[net_List[indice].no_B][num_Variaveis] -= net_List_Inicial[indice].Io - net_List[indice].Io;
-
-//		net_List[indice].Io = net_List_Inicial[indice].Io;
-//		cout << net_List[indice].Io << " :: " << net_List[indice].valor << endl;
-//		break;
-//	case '$':
-//		EstampaNR(sistema, net_List, tipo, indice, net_List_Inicial[indice].valor);
-//		break;
-//	default:
-//		break;
-//	}
-//}
-
-//

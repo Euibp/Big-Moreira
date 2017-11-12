@@ -45,8 +45,8 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 	char tipo;
 	size_t indice;
 	double valor_Aux, quantia_aux;
-
 	size_t num_Variaveis = sistema.size();
+
 	for (size_t intera = 0; intera < comp_var.size(); intera++) {
 		indice = posicao_var[intera];
 		// Presta atenção nessa praga
@@ -54,18 +54,17 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 
 		switch (tipo) {
 		case 'V': // Fonte de Tensão Independente
-			sistema[net_List[indice].j_x][sistema.size()] -= net_List[indice].valor_novo - net_List[indice].valor ;
+			sistema[net_List[indice].j_x][sistema.size()] -= (net_List[indice].valor_novo - net_List[indice].valor) ;
 			net_List[indice].valor = net_List[indice].valor_novo;
 			break;
+
 		case 'I': // Fonte de Tensão Independente
-			sistema[net_List[indice].no_A][num_Variaveis] -= net_List[indice].valor_novo - net_List[indice].valor;
-			sistema[net_List[indice].no_B][num_Variaveis] += net_List[indice].valor_novo - net_List[indice].valor;
+			sistema[net_List[indice].no_A][num_Variaveis] -= (net_List[indice].valor_novo - net_List[indice].valor);
+			sistema[net_List[indice].no_B][num_Variaveis] += (net_List[indice].valor_novo - net_List[indice].valor);
 			net_List[indice].valor = net_List[indice].valor_novo;
 			break;
 
-		case 'C': // Capacitor como fonte de tensão = 0 
-			//Se tiver passo variavel não fazer isso ali em baixo
-
+		case 'C': 
 			quantia_aux = ((2 * net_List[indice].valor) / passo);
 
 			if (tempo_Atual == passo) {
@@ -73,8 +72,8 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 				sistema[net_List[indice].no_B][net_List[indice].no_B] += quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
 				sistema[net_List[indice].no_A][net_List[indice].no_B] -= quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
 				sistema[net_List[indice].no_B][net_List[indice].no_A] -= quantia_aux - 1 / RESISTOR_DE_GAMBIARRA;
-
 			};
+
 			if (tempo_Atual > 0) {
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 				//cout << valor_Aux;
@@ -133,4 +132,3 @@ int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz s
 }
 
 /*----------------------------------FIM-------------------------------------------------------------------------------------------------------------------------------*/
-

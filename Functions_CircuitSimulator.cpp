@@ -211,8 +211,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
-			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) /(stod(SplitVec[5]) - stod(SplitVec[3]));
-			generico.Io = 0;
+			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) / (stod(SplitVec[5]) - stod(SplitVec[3]));
+			generico.Io = 0; //PERGUNTAR PARA O PROFESSOR
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
 		}
@@ -291,7 +291,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 
 	/*Variáveis utilizadas*/
 	string tipo;														/*Tipo da variável*/
-	unsigned int num_Nos = lista.size() - 1;							/*Número de nós do circuito*/
+	unsigned int num_Nos = (unsigned int)lista.size() - 1;							/*Número de nós do circuito*/
 
 	/*A netlist do circuito é varrida nesse loop*/
 	for (size_t indice = 0; indice < net_List.size(); indice++) {
@@ -446,8 +446,8 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
 			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
-			outSistema[net_List[indice].no_A][num_Variaveis] += net_List[indice].Io;
-			outSistema[net_List[indice].no_B][num_Variaveis] -= net_List[indice].Io;
+			outSistema[net_List[indice].no_A][num_Variaveis] -= net_List[indice].Io; /*MUDANÇA*/
+			outSistema[net_List[indice].no_B][num_Variaveis] += net_List[indice].Io; /*MUDANÇA*/
 			break;
 
 		case '$': //Chave
@@ -512,7 +512,7 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 			}
 		}
 	}
-	sistema[0][sistema.size()] = 0;
+	sistema[0][sistema.size()] = 0; /*Diz que a tensão no nó de terra é 0*/
 	outSistema = sistema;
 	return(SUCESSO);
 }

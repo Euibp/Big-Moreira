@@ -11,8 +11,6 @@ int main(int argc, char** argv)
 	clock_t startClock = clock();
 	cout << "Processando... " << endl;
 
-	int erro;
-
 	/*Variáveis e Objetos*/
 	string nome = argv[1];			/*Nome do arquivo .NET de entrada*/
 	netlist net_List;				/*Netlist do circuito a ser analisado*/
@@ -23,6 +21,7 @@ int main(int argc, char** argv)
 	param parametros;				/*Objeto que armazena as informações a serem impressas no arquivo .TAB de saída*/
 	Dados_Analise dadosAnalise;		/*Objeto que contém instruções para uma análise no tempo*/
 	Dados_NR dadosNR;				/*Objeto que contém informações de componentes não lineraes*/
+	int erro;
 
 	/*O netlist do circuito é obtido*/
 	/*Os nós do circuito são nomeados*/

@@ -84,53 +84,61 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 
 /*Ao rodar essa função o programa lê o netlist do circuito a ser analisado a partir do arquivo .NET de entrada*/
 int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , Dados_Analise &informacoes, Dados_NR &infoNetownRapson) {
-	ifstream arquivo;
-	string linha, componente;
+	
+	/*Variáveis utilizadas*/
+	ifstream arquivo;						/*Arquivo a ser aberto e lido contendo a netlist do circuito a ser analizado*/
+	string linha;							/*Linha do arquivo a ser lida para que dados de um único componente sejem pegos*/
+	string componente;
+	int ne = 0;								/*Número de componentes do circuito a ser analisado*/
 
+	/*Objetos utilizados*/
+	Componente generico;					/*Esse objeto é um componente, com todos os seus atributos*/
+
+	/*A lista é um vetor de strings onde serão armazenadas todas as informações pegas de uma linha do arquivo*/
+	/*Quando um push_back é realizado, um ponteiro é direcionado para a primeira posição vaga da lista*/
 	lista.push_back("0");
 
+	/*Se o arquivo contendo o netlist do circuito não estiver aberto, a função abre ele*/
 	if (!arquivo.is_open())
 		arquivo.open(nomeArquivo);
 
 	/*Se o arquivo aberto estiver vazio, é assumido que aquele arquivo de netlist não existe*/
 	if (!arquivo.is_open())
 	{
-		//printf("Arquivo %s inexistente\n", nomearquivo);
 		return(ARQUIVO_INEXISTENTE);
 	}
-	/*Pelo que eu entendi é esperado que a primeira linha do arquivo de netlist contenha o nome do circuito.
-	Então copia-se o nome do circuito para uma string e esse nome deve ser usado mais tarde para alguma coisa,
-	além de ser impresso na tela*/
 
-	int ne = 0; /*Inicializa número de componentes como 0*/
+	getline(arquivo, linha);					/*Lê a primeira linha do arquivo, a qual contém o número de nós do circuito*/
 
-	getline(arquivo, linha);
-	//cout << "FUCKING TITULO : " << linha << endl;
+	/*Cada linha do arquivo, exceto a primeira, pode conter informações de um componente, comentários ou instruções de análise*/
+	/*Enquanto o arquivo não termina, cada linha dele é lida nesse while aqui*/
 	while (getline(arquivo, linha))
 	{
-		Componente generico;
-		ne++;
-		if (ne > MAX_COMPONENTE)
-		{
-			//printf("O programa so aceita ate %d elementos\n", MAX_ELEM);
-			return(ERRO_NUMERO_MAXIMO_ELEMENTOS);
-		}
-		generico.tipo = linha.substr(0, 1);
 
+		/*Um componente foi lido da netlist. Um circuito não pode possuir mais componentes do que um determinado limite*/
+		ne++;											/*Número de componentes é incrementado*/
+		if (ne > MAX_COMPONENTE)						/*Se tiver mais componentes do que pode dá erro*/
+			return(ERRO_NUMERO_MAXIMO_ELEMENTOS);
+		generico.tipo = linha.substr(0, 1);				/*O primeiro caracter da linha identifica o tipo de componente*/
+
+		/*Cada informação na linha é separada por um espaço*/
+		/*Essa parte divide a linha em strigs, a cada espaço, e armazena cada string em uma posição de um vetor, chamado SplitVec*/
 		stringstream sStream(linha);
-		vector<string> SplitVec; // #2: Search for tokens
-		//Considerar que o netlist está errado
+		vector<string> SplitVec;
 		while (getline(sStream, componente, ' '))
 		{
 			SplitVec.push_back(componente);
 		}
 
+		/*Se o primeiro caracter da linha for R, um resistor é configurado. Ver estampa na apostila*/
 		if (generico.tipo == "R" ) {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = stod(SplitVec[3]);
 		}
+
+		/*Se o primeiro caracter da linha for V ou I, uma fonte é configurada. Ver estampa na apostila*/
 		else if (generico.tipo == "V" || generico.tipo == "I") {
 					generico.nome = SplitVec[0];
 					generico.no_A = NomearNos(SplitVec[1], lista);
@@ -142,6 +150,11 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 						informacoes.comp_var.push_back(SplitVec);
 					}
 		}
+		
+		/*Se o primeiro caracter da linha for G, um transcondutor é configurado. Ver estampa na apostila*/
+		/*Se o primeiro caracter da linha for E, um amplificador de tensão é configurado. Ver estampa na apostila*/
+		/*Se o primeiro caracter da linha for F, um amplificador de corrente é configurado. Ver estampa na apostila*/
+		/*Se o primeiro caracter da linha for H, um transrresistor é configurado. Ver estampa na apostila*/
 		else if (generico.tipo == "G" || generico.tipo == "E" || generico.tipo == "F" || generico.tipo == "H")
 		{
 			generico.nome = SplitVec[0];
@@ -151,6 +164,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_D = NomearNos(SplitVec[4], lista);
 			generico.valor = stod(SplitVec[5]);
 		}
+
+		/*Se o primeiro caracter da linha for O, um amplificador operacional ideal é configurado. Ver estampa na apostila*/
 		else if (generico.tipo == "O")
 		{
 			generico.nome = SplitVec[0];
@@ -159,6 +174,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 		}
+
+		/*Se o primeiro caracter da linha for C, um capacitor é configurado. Ver estampa na apostila*/
 		else if (generico.tipo == "C") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
@@ -167,6 +184,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			informacoes.posicao_var.push_back(net_List.size());
 			informacoes.comp_var.push_back(SplitVec);
 		}
+
+		/*Se o primeiro caracter da linha for L, um indutor é configurado. Ver estampa na apostila*/
 		else if (generico.tipo == "L") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
@@ -175,6 +194,8 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			informacoes.posicao_var.push_back(net_List.size());
 			informacoes.comp_var.push_back(SplitVec);
 		}
+
+		/*Se o primeiro caracter da linha for K, um transformador ideal é configurado. Ver estampa na apostila*/
 		else if (generico.tipo == "K") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
@@ -182,64 +203,66 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 			generico.valor = stod(SplitVec[5]);
-		}
-		//Não lineneares
+		{
+
+		/*Se o primeiro caracter da linha for N, um resistor linear por partes é configurado. Ver estampa na apostila*/
+		/*Aqui considera-se que o resistor corresponde à primeira reta, das três possíveis. Ver página 86 da apostila*/
 		else if (generico.tipo == "N") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) /(stod(SplitVec[5]) - stod(SplitVec[3]));
-			generico.Io = 0;//stod(SplitVec[6]) - generico.valor*(stod(SplitVec[5]));
+			generico.Io = 0;
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
-
 		}
+
+		/*Se o primeiro caracter da linha for $, uma chave é configurada. Ver estampa na apostila*/
+		/*A chave é inicializada com o valor de G0ff. Ver especificação do trabalho*/
 		else if (generico.tipo == "$") {
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
-			generico.valor = stod(SplitVec[6]);//Valor de OFF
+			generico.valor = stod(SplitVec[6]);
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
 		}
+
+		/*Se o primeiro caracter da linha é um . trata-se de informações de análise*/
+		/*Como não é um elemento, a variável ne deve ser decrementada*/
 		else if (generico.tipo == ".") {
 			informacoes.tipo_Analise = SplitVec[0];
 			informacoes.tempo_Final = stod(SplitVec[1]);
 			informacoes.passo = stod(SplitVec[2]);
 			informacoes.metodo = SplitVec[3];
 			informacoes.passos_Tabela = stoi(SplitVec[4]);
-			//informacoes.Seila = SplitVec[5];
+			ne--;																			//PERIGO!! PODE ESTAR DANDO MERDA!!
 		}
-		else if (generico.tipo == "*") { /* Comentário começa com "*" */
+
+		/*Se o primeiro caracter da linha é um * trata-se de comentário*/
+		/*Como não é um elemento, a variável ne deve ser decrementada*/
+		else if (generico.tipo == "*") { 
 			ne--;
 		}
+
+		/*Se o primeiro caracter da linha qualquer outra coisa o programa não trata*/
 		else {
-			//cout << "Elemento desconhecido: " << linha;
 			arquivo.close();
 			return(ELEMENTO_DESCONHECIDO);
 		}
 
 
 		if (generico.tipo != "*") {
-			if (lista.size() == MAX_NOS) {
-				//printf("O programa só aceita até %d nós", num_Nos);
+			if (lista.size() == MAX_NOS)
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
-			}
 			net_List.push_back(generico);
 		}
-		////cout << net_List[ne - 1].nome << " " << net_List[ne - 1].no_A << " " << net_List[ne - 1].no_B << " " << net_List[ne - 1].no_C << " " << net_List[ne - 1].no_D << " " << net_List[ne - 1].valor << endl;
 	}
-	arquivo.close();
 
-	ConfigurarNetList(net_List, lista);
-
-	//cout << "lista" << endl;
-	//for (int index = 0; index < lista.size(); index++) {
-	//	cout << lista[index] << " : ";
-	//}
-
+	arquivo.close();							/*Tudo que era para ser lido foi lido e o arquivo pode ser fechado*/
+	ConfigurarNetList(net_List, lista);			/*Aqui a netlist do circuito é configurada*/
 	return(SUCESSO);
 };
 
@@ -265,12 +288,17 @@ int NomearNos(string nome, vector<string> &lista) {
 
 /*Ao rodar essa função o programa define as tensões e correntes a serem calculadas*/
 int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
-	string tipo;
-	unsigned int num_Nos = lista.size() - 1;
 
-	for (size_t indice = 0; indice < net_List.size(); indice++)
-	{
+	/*Variáveis utilizadas*/
+	string tipo;														/*Tipo da variável*/
+	unsigned int num_Nos = lista.size() - 1;							/*Número de nós do circuito*/
+
+	/*A netlist do circuito é varrida nesse loop*/
+	for (size_t indice = 0; indice < net_List.size(); indice++) {
+		
+		/*O tipo de elemento a ser configurado é pego aqui*/
 		tipo = net_List[indice].tipo;
+
 		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O" || tipo == "L" || tipo == "K"){
 			num_Nos++; /*Uma variável de corrente a mais é contada*/
 			if (num_Nos > MAX_NOS){
@@ -278,7 +306,6 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			}
 			lista.push_back("j" + net_List[indice].nome);
-
 			net_List[indice].j_x = num_Nos; 
 		}
 
@@ -288,23 +315,13 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 		{
 			num_Nos = num_Nos + 2; /*Duas variáveis de corrente a mais são contadas*/
 			if (num_Nos > MAX_NOS)
-			{
-				//printf("As correntes extra excederam o numero de variaveis permitido (%d)\n", MAX_NOS);
 				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
-			}
 			lista.push_back("jx" + net_List[indice].nome);
 			net_List[indice].j_x = num_Nos - 1;
 			lista.push_back("jy" + net_List[indice].nome);
 			net_List[indice].j_y = num_Nos;
-			//cout << net_List[indice].j_x << " ** " << net_List[indice].j_y << " / ";
 		}
 	}
-
-	//cout << "lista" << endl;
-	for (size_t index = 0; index < lista.size(); index++) {
-		//cout << lista[index] << endl;
-	}
-
 	return(SUCESSO);
 }
 
@@ -314,15 +331,16 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 /*Essa função preenche o sistema de equações a ser resolvido adicionando ao mesmo as estampas de cada componente do circuito sob análise*/
 /*Em caso de componentes não lineares ou variantes no tempo, as estampas dos mesmos são modificadas em outro momento por outras funções ou métodos*/
 int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
+	
+	/*Variáveis utilizadas*/
+	matriz outSistema(num_Variaveis, vector<double>(num_Variaveis + 1, 0)); /*Matriz que concatena as matrizes A e B a serem estampadas*/
+	double valor_Aux;														/*Variável auxiliar utilizada para armazenar temporariamente um valor*/
 
-	matriz outSistema(num_Variaveis, vector<double>(num_Variaveis + 1, 0));
-
-	//cout << endl << outSistema.size() << " " << outSistema[0].size();
-	/* Monta estampas */
+	/*Nesse loop o sistema a ser resolvido é estampado com as estampas de cada componente. Ver apostila.*/
 	for (size_t indice = 0; indice < net_List.size(); indice++) {
-		double valor_Aux;
 
 		switch (net_List[indice].tipo[0]) {
+		
 		case 'R': // Resistor
 			valor_Aux = 1 / net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
@@ -330,18 +348,21 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
-		case 'G': // Transcondutancias
+		
+		case 'G': // Transcondutancia
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].no_C] += valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_D] += valor_Aux;
 			outSistema[net_List[indice].no_A][net_List[indice].no_D] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_C] -= valor_Aux;
 			break;
+		
 		case 'I': // Fonte de Corrente Independente
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][num_Variaveis] -= valor_Aux;
 			outSistema[net_List[indice].no_B][num_Variaveis] += valor_Aux;
 			break;
+		
 		case 'V': // Fonte de Tensão Independente
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
@@ -349,6 +370,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
 			outSistema[net_List[indice].j_x][num_Variaveis] -= net_List[indice].valor;
 			break;
+		
 		case 'E': // Fonte de tensão controlada por tensão
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
@@ -358,6 +380,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] += valor_Aux;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] -= valor_Aux;
 			break;
+		
 		case 'F': // Fonte de corrente controlada por corrente
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += valor_Aux;
@@ -367,7 +390,8 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
 			break;
-		case 'H': // // Fonte de tensao controlada por tensão
+		
+		case 'H': // Transresistor
 			valor_Aux = net_List[indice].valor;
 			outSistema[net_List[indice].no_A][net_List[indice].j_y] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_y] -= 1;
@@ -379,20 +403,23 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
 			outSistema[net_List[indice].j_y][net_List[indice].j_x] += valor_Aux;
 			break;
-		case 'O': // Amplificador Operacional
+
+		case 'O': // Amplificador Operacional Ideal
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] += 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] -= 1;
 			break;
-		case 'C': // ISSO ESTÀ ERRADO
+
+		case 'C': // Capacitor
 			valor_Aux = 1/RESISTOR_DE_GAMBIARRA;
 			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
 			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
-		case 'L': // ISSO ESTÀ ERRADO
+
+		case 'L': // Indutor
 			valor_Aux = 1/RESISTOR_DE_GAMBIARRA; // Vulgo resistor de Gambiarra 2
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] += 1;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] -= 1;
@@ -400,7 +427,8 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_B] += 1;
 			outSistema[net_List[indice].j_x][net_List[indice].j_x] += valor_Aux;
 			break;
-		case 'K':
+
+		case 'K': //Transformador Ideal Amorzinho
 			valor_Aux = net_List[indice].valor; // Vulgo resistor de Gambiarra 2
 			outSistema[net_List[indice].no_A][net_List[indice].j_x] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].j_x] += valor_Aux;
@@ -411,7 +439,8 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].j_x][net_List[indice].no_C] -= 1;
 			outSistema[net_List[indice].j_x][net_List[indice].no_D] += 1;
 			break;
-		case 'N': //Chave
+
+		case 'N': //Resistor linear por partes demoníaco
 			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia
 			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_B] += valor_Aux;
@@ -420,6 +449,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_A][num_Variaveis] += net_List[indice].Io;
 			outSistema[net_List[indice].no_B][num_Variaveis] -= net_List[indice].Io;
 			break;
+
 		case '$': //Chave
 			valor_Aux = net_List[indice].valor; //Porque essa praga é condutancia
 			outSistema[net_List[indice].no_A][net_List[indice].no_A] += valor_Aux;
@@ -427,19 +457,13 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			outSistema[net_List[indice].no_A][net_List[indice].no_B] -= valor_Aux;
 			outSistema[net_List[indice].no_B][net_List[indice].no_A] -= valor_Aux;
 			break;
+
 		default:
 			break;
 		}
 	}	
 
-
-	for (size_t row = 1; row < outSistema.size(); row++) {
-		for (size_t col = 1; col < outSistema[row].size(); col++) {
-			//cout << setw(4) << setprecision(2) << outSistema[row][col] << " ";
-		}
-		//cout << endl;
-	}
-
+	/*Após a estampagem, o sistema a ser resolvido é devolvido*/
 	sistema = outSistema;
 	return(SUCESSO);
 }
@@ -449,55 +473,46 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 
 /*Esta função resolve um sistema de equações*/
 int ResolverSistema(matriz sistema, matriz &outSistema) {
+	
+	/*Variáveis utilizadas*/
 	double valor_ABS, aux;
 	size_t novo_Pivot;
 	vector<double> vetor_aux;
-
-	//cout << endl;
-
+	
+	/*Magic Part. Don't worry about this code. Just accept it.*/
 	for (size_t pivot = 1; pivot < sistema.size(); pivot++) {
 		valor_ABS = 0.0;
 		novo_Pivot = pivot;
+		
 		for (size_t linha = pivot; linha < sistema.size(); linha++) {
 			if (fabs(sistema[linha][pivot]) > fabs(valor_ABS)) {
 				novo_Pivot = linha;
 				valor_ABS = sistema[linha][pivot];
 			}
 		}
+
 		if (pivot != novo_Pivot) {
-			////cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
 			vetor_aux = sistema[pivot];
 			sistema[pivot] = sistema[novo_Pivot];
 			sistema[novo_Pivot] = vetor_aux;
-			////cout << sistema[pivot][pivot] << " // " << sistema[novo_Pivot][pivot] << endl;
 		}
 
 		if (fabs(valor_ABS) < TOLG) {
-			//printf("Sistema singular");
 			return (SISTEMA_SINGULAR);
 		}
 
-		for (size_t indice = sistema.size(); indice >= pivot; indice--) {  /* Basta j>i em vez de j>0 */
-			//Normalização
+		for (size_t indice = sistema.size(); indice >= pivot; indice--) {  
 			sistema[pivot][indice] /= valor_ABS;
 			aux = sistema[pivot][indice];
-			for (size_t linha = 1; linha < sistema.size(); linha++) { /* Poderia não fazer se p=0 */
+			
+			for (size_t linha = 1; linha < sistema.size(); linha++) { 
 				if (linha != pivot)
 					sistema[linha][indice] -= sistema[linha][pivot] * aux;
 			}
 		}
-		
-		//for (size_t row = 1; row < sistema.size(); row++) {
-		//	for (size_t col = 1; col < sistema[row].size(); col++) {
-		//		cout << setw(20) << setprecision(10) << sistema[row][col] << " ";
-		//	}
-		//	cout << endl;
-		//}
-		//cout << endl;
 	}
 	sistema[0][sistema.size()] = 0;
 	outSistema = sistema;
-
 	return(SUCESSO);
 }
 

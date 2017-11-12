@@ -26,64 +26,78 @@ struct gminParam {
 /*Este método calcula a próxima aproximação quando no Método de Newton-Raphson*/
 int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior) {
 	/*Variáveis utilizadas*/
-	int erro;																	/**/
+	int erroGmin;																/*Armazena o valor de retorno do método Gmin*/
 	size_t indice;																/*Variável auxiliar utilizada em loops*/
-	char tipo;																	/**/
+	char tipo;																	/*Armazena o tipo de um componente*/
 
-	size_t contadorInteracao = 0;												/**/
-	size_t contadorDiferencial = 1;												/**/
+	size_t contadorInteracao = 0;												/*Conta o número de iterações de Newton-Raphson realizadas*/
+	size_t contadorDiferencial = 1;												/*É uma flag que indica se todos os componentes convergiram (0) ou se não (1)*/
 	bool Gmin_Comecou = false;													/*Flag que indica se Gmin Stepping começou a ser utilizado*/ 
 
-	matriz sistema_Inicial = sistema_Anterior;									/**/
-	netlist net_List_Inicial = net_List;										/**/
+	matriz sistema_Inicial = sistema_Anterior;									/*Sistema de equações a ser resolvido*/
+	netlist net_List_Inicial = net_List;										/*Conjunto dos componentes de um circuito*/
 
 	vector<bool> verifica_Convergencia(comp_var.size(), true);					/**/
 	vector<double> fator_divisao(comp_var.size(), FATOR_INICIAL);				/**/
 
-	/*Início do cálculo da próxima aproximação*/
+	/*Esse loop é feito se algum componente não tiver convergido*/
 	while (contadorDiferencial != 0) {
-		contadorInteracao = InteracaoNR(sistema, net_List, sistema_Anterior, verifica_Convergencia);
-//		if (contadorInteracao > 1) std::cout << "END :: " << contadorInteracao << endl;
 
+		/*O número de iterações já realizadas é pego aqui. Esse número não pode ultrapassar um certo valor*/
+		contadorInteracao = InteracaoNR(sistema, net_List, sistema_Anterior, verifica_Convergencia);
 		if (contadorInteracao <= MAX_INTERACAO_NR && Gmin_Comecou == false)
 			break;
+
 		contadorDiferencial = 0;
 		Gmin_Comecou = true;
 
+		/*Esse loop acontece tantas vezes quantas forem os elementos não lineares do circuito*/
+		/*Esse loop acontece se Gmin Stepping tiver sido utilizado*/
 		for (size_t indice_NL = 0; indice_NL < comp_var.size(); indice_NL++) {
-				indice = posicao_var[indice_NL];
-				// Presta atenção nessa praga
-				tipo = comp_var[indice_NL][0][0];
+
+			/*O tipo do componente a ser tratado é pego aqui*/
+			indice = posicao_var[indice_NL];
+			tipo = comp_var[indice_NL][0][0];
 			switch (tipo) {
+
+			/*Se o componente for um resistor linear por partes*/
 			case 'N':
-				erro = GminStep(sistema, net_List, tipo, indice, verifica_Convergencia[indice_NL],fator_divisao[indice_NL]);
+				erroGmin = GminStep(sistema, net_List, tipo, indice, verifica_Convergencia[indice_NL],fator_divisao[indice_NL]);
 				cout << "erro" << erro << endl;
-				if (erro != ESTABILIZOU) contadorDiferencial++;
-				if (erro == ERRO_DE_ESTABILIZACAO) return(erro);
+				if (erroGmin != ESTABILIZOU) contadorDiferencial++;
+				if (erroGmin == ERRO_DE_ESTABILIZACAO) return(erroGmin);
 				verifica_Convergencia[indice_NL] = true;
 				break;
+
+			/*Se o componente não for um resistor linear por partes*/
 			default:
 				break;
 			}
 		}
+
 		ResolverSistema(sistema, sistema_Anterior);
-		cout << "GminContador ::" << contadorDiferencial<<endl;
 	}
+
+	/*A partir do momento que todos os componentes convergirem o método passa a essa parte*/
+	/*Esse loop acontece tantas vezes quantas forem os elementos não lineares do circuito*/
 	for (size_t indice_NL = 0; indice_NL < comp_var.size(); indice_NL++) {
-		indice = posicao_var[indice_NL];
-		// Presta atenção nessa praga
-		tipo = comp_var[indice_NL][0][0];
 		double valor_Aux;
 		double novo_valor;
 		double Io;
 		size_t num_Variaveis = sistema.size();
 
+		/*O tipo do componente a ser tratado é pego aqui*/
+		indice = posicao_var[indice_NL];
+		tipo = comp_var[indice_NL][0][0];
 		switch (tipo) {
+
+		/*Se o componente for um resistor linear por partes*/
 		case 'N':
 			valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 			novo_valor = CalcularValorNR(comp_var[indice_NL], valor_Aux, Io);
-			cout << novo_valor << endl;
 			break;
+
+		/*Se o componente não for um resistor linear por partes*/
 		default:
 			break;
 		}
@@ -118,36 +132,49 @@ int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t in
 //#########################################################################################################
 
 int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator) {
-	double novo_Gmin;
+	/*Variáveis utilizadas*/
+	double novo_Gmin;							/*Valor atualizado da condutância posta em paralelo com ramos não lineares*/
 
-	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == false)  novo_Gmin = GMIN_MAXIMO;
+	/*Se a condutância posta em paralelo for menor que o permitido e o sistema não tiver convergido, o Gmin é resetado*/
+	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == false)  
+		novo_Gmin = GMIN_MAXIMO;
+	
+	/*Se a condutância posta em paralelo ainda puder ser reduzida para tentar uma convergência, o Gmin é dividido por um fator*/
 	else {
-		if (convergencia == true) { // divid por 10
-			fator = 10;
-			cout << " FATOR ::" << fator << endl;
-		}
-		if (convergencia == false) {
-			cout << " FATOR ::" << fator << endl;
-			net_List[indice].gmin = net_List[indice].gmin * fator;
-			fator = sqrt(fator);
-			cout <<" FATOR ::" << fator<< endl;
-			if (fator < FATOR_DIVISAO_MINIMO) return(ERRO_DE_ESTABILIZACAO);
-		}
-		novo_Gmin = net_List[indice].gmin / fator;
 
-		if (novo_Gmin < GMIN_MINIMO) {
-			if (convergencia == false) return(ERRO_DE_ESTABILIZACAO);
-			net_List[indice].gmin = novo_Gmin;
-			return(ESTABILIZOU);
+		/*Caso em que com o Gmin "atual" houve convergência. Tenta-se dividir Gmin por 10 para verificar-se se há nova convergência*/
+		if (convergencia == true) {
+			fator = 10;														/*O fator de divisão do Gmin é, nesse caso, 10*/
+		}
+		
+		/*Caso em que com o Gmin "atual" não houve convergência. Tenta-se dividir Gmin por um valor menor que 10 para verificar se há convergência dessa vez*/
+		if (convergencia == false) {
+			net_List[indice].gmin = net_List[indice].gmin * fator;
+			fator = sqrt(fator);											/*O fator de divisão do Gmin é, nesse caso, raíz quadrada do fator anterior*/
+			if (fator < FATOR_DIVISAO_MINIMO)								/*O fator de divisão do Gmin não pode ser menor que um dado valor*/ 
+				return(ERRO_DE_ESTABILIZACAO);
+		}
+
+		/*Aqui o Gmin é atualizado através da divisão por um fator. Se o Gmin atualizado for menor que o Gmin mínimo, não deve ser mais dividido*/
+		novo_Gmin = net_List[indice].gmin / fator;
+		if (novo_Gmin < GMIN_MINIMO) 
+		{
+			if (convergencia == false) {									/*Se o sistema não tiver convergido*/
+//				net_List[indice].gmin = novo_Gmin;
+				return(ERRO_DE_ESTABILIZACAO);
+			}
+			else {															/*Se o sistema tiver convergido*/
+				net_List[indice].gmin = novo_Gmin;
+				return(ESTABILIZOU);
+			}
 		}
 	}
 	
-
+	/*A estampa do circuito é atualizada com o valor calculado da condutância posta em paralelo com o ramo não linear*/
 	sistema[net_List[indice].no_A][net_List[indice].no_A] += novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_B][net_List[indice].no_B] += novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_A][net_List[indice].no_B] -= novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_B][net_List[indice].no_A] -= novo_Gmin - net_List[indice].gmin;
-
 	net_List[indice].gmin = novo_Gmin;
 
 	return(SUCESSO);
@@ -168,9 +195,10 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 	
 	/*Se o componente não linear for um resistor linear por partes*/
 	/*Um resistor linear por partes é definido por três retas, o que significa dizer que há três possíveis valores para sua resistência*/
+	/*Para entender o cálculo, ver apostila na página 86*/
 	case 'N':
 		
-		/*Se o componente for definido pela primeira reta, definida pelo primeiro e pelo segundo ponto*/		
+		/*Se o componente for definido pela primeira reta, definida pelo primeiro e pelo segundo ponto*/
 		if (valorAnterior <= stod(paramNR[5])) {
 			condutanciaDoComponente = (stod(paramNR[6]) - stod(paramNR[4])) / (stod(paramNR[5]) - stod(paramNR[3]));
 			Io = stod(paramNR[6]) - condutanciaDoComponente*(stod(paramNR[5]));
@@ -195,11 +223,9 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 	/*Se o componente não linear for uma chave*/
 	case '$':
 		condutanciaDoComponente = stod(paramNR[7]);
-
 		if (valorAnterior > condutanciaDoComponente) {
 			return(stod(paramNR[5]));
 		}
-
 		return(stod(paramNR[6]));
 		break;
 

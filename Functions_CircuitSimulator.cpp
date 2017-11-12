@@ -105,7 +105,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 	/*Se o arquivo aberto estiver vazio, é assumido que aquele arquivo de netlist não existe*/
 	if (!arquivo.is_open())
 	{
-		return(ARQUIVO_INEXISTENTE);
+		return(ERRO_ARQUIVO_INEXISTENTE);
 	}
 
 	getline(arquivo, linha);					/*Lê a primeira linha do arquivo, a qual contém o número de nós do circuito*/
@@ -203,7 +203,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_C = NomearNos(SplitVec[3], lista);
 			generico.no_D = NomearNos(SplitVec[4], lista);
 			generico.valor = stod(SplitVec[5]);
-		{
+		}
 
 		/*Se o primeiro caracter da linha for N, um resistor linear por partes é configurado. Ver estampa na apostila*/
 		/*Aqui considera-se que o resistor corresponde à primeira reta, das três possíveis. Ver página 86 da apostila*/
@@ -250,13 +250,13 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		/*Se o primeiro caracter da linha qualquer outra coisa o programa não trata*/
 		else {
 			arquivo.close();
-			return(ELEMENTO_DESCONHECIDO);
+			return(ERRO_ELEMENTO_DESCONHECIDO);
 		}
 
-
-		if (generico.tipo != "*") {
+		/*Se na lista for armazenada mais variáveis de tensão do que é permitido, o programa acaba indicando erro*/
+		if ((generico.tipo != "*") && (generico.tipo != ".")) {
 			if (lista.size() == MAX_NOS)
-				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
+				return(ERRO_NUMERO_MAXIMO_NOS);
 			net_List.push_back(generico);
 		}
 	}
@@ -303,7 +303,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 			num_Nos++; /*Uma variável de corrente a mais é contada*/
 			if (num_Nos > MAX_NOS){
 				//printf("As correntes extra excederam o numero de variaveis permitido (%d)\n", MAX_NOS);
-				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
+				return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			}
 			lista.push_back("j" + net_List[indice].nome);
 			net_List[indice].j_x = num_Nos; 
@@ -315,7 +315,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 		{
 			num_Nos = num_Nos + 2; /*Duas variáveis de corrente a mais são contadas*/
 			if (num_Nos > MAX_NOS)
-				return(NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
+				return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			lista.push_back("jx" + net_List[indice].nome);
 			net_List[indice].j_x = num_Nos - 1;
 			lista.push_back("jy" + net_List[indice].nome);
@@ -459,6 +459,7 @@ int Estampar(netlist net_List, matriz &sistema, size_t num_Variaveis) {
 			break;
 
 		default:
+			return (ERRO_ESTAMPAR);
 			break;
 		}
 	}	
@@ -498,7 +499,7 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 		}
 
 		if (fabs(valor_ABS) < TOLG) {
-			return (SISTEMA_SINGULAR);
+			return (ERRO_SISTEMA_SINGULAR);
 		}
 
 		for (size_t indice = sistema.size(); indice >= pivot; indice--) {  
@@ -522,20 +523,22 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 /*Ao rodar essa função o programa gera o arquivo .TAB de saída*/
 int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, param parametros, Dados_Analise informacao) {
 
-	//  juntar paramentros com Dados_Analise
-	if ((int)arquivo.tellp() == 0) {
+	/*Imprime no .TAB os títulos das colunas de dados*/
+	if ((int)arquivo.tellp() == 0) 
+	{
 		arquivo << "t";
 		for (size_t index = 1; index < lista.size(); index++) {
 			arquivo << " " << lista[index];
 		}
 		arquivo << " erroc" << " errol" << " erro" << " dt" << endl;
 	}
+
+	/*Imprime cada linha de dados no .TAB a cada análise no tempo*/
 	arquivo << informacao.tempo_Atual;
 	for (size_t index = 1; index < lista.size(); index++) {
 		arquivo << " " << sistema[index][lista.size()];
 	}
 	arquivo << " " << parametros.erroc << " " << parametros.errol << " " << parametros.erro << " " << parametros.dt << endl;
-
 
 	return(SUCESSO);
 }

@@ -8,38 +8,39 @@
 //#########################################################################################################
 //#########################################################################################################
 
-int Dados_Analise::NumeroDeOperacoes() {
-	numero_De_Analises = (size_t)floor(tempo_Final / passo);
+/*Este método calcula quantas análises no tempo devem ser realizadas*/
+int Dados_Analise::NumeroDeOperacoes() 
+{
+	numero_De_Analises = (size_t)floor(tempo_Final / passo); /*numero_De_Analises é atributo da classe e por isso não precisa ser passada como parâmetro*/
 	return(SUCESSO);
 }
 
 //#########################################################################################################
 //#########################################################################################################
 
+/*Este método calcula o valor das fontes pulsantes e senoidais em cada instante de tempo*/
 int Dados_Analise::CalcularComponentesTempo(netlist &net_List) {
-	// estou dentro da fucking classe	
-	string tipo;
 
-	for (size_t index = 0; index < comp_var.size(); index++) {
-		tipo = comp_var[index][0][0];
-		if (tipo == "V" || tipo == "I") {
-			if (comp_var[index][3] == "SIN") {
+	for (size_t index = 0; index < comp_var.size(); index++)
+	{
+		/*O tipo de componente a ser calculado é pego aqui*/
+		char tipo = comp_var[index][0][0];
+		/*Esse programa só admite dois componentes variáveis no tempo: Fontes de Tensão ou Corrente*/
+		if (tipo == 'V' || tipo == 'I')
+		{
+			if (comp_var[index][3] == "SIN")
 				net_List[posicao_var[index]].valor_novo = CalcularSenoide(comp_var[index], tempo_Atual);
-			}
-			if (comp_var[index][3] == "PULSE") {
+			if (comp_var[index][3] == "PULSE")
 				net_List[posicao_var[index]].valor_novo = CalcularPulsante(comp_var[index], tempo_Atual, passo);
-			}
 		}
-
 	};
-
-
 	return(SUCESSO);
 }
 
 //#########################################################################################################
 //#########################################################################################################
 
+/*Este método atualiza a estampa dos componentes variáveis no tempo durante a análise*/
 int Dados_Analise::AtualizarEstampa(netlist &net_List, matriz &sistema, matriz sistema_Anterior) {
 	char tipo;
 	size_t indice;

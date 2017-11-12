@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	param parametros;				/*Objeto que armazena as informações a serem impressas no arquivo .TAB de saída*/
 	Dados_Analise dadosAnalise;		/*Objeto que contém instruções para uma análise no tempo*/
 	Dados_NR dadosNR;				/*Objeto que contém informações de componentes não lineraes*/
-	int erro;
+	int erro;						/*Armazena o código de erro de convergência de componentes não lineares*/
 
 	/*O netlist do circuito é obtido*/
 	/*Os nós do circuito são nomeados*/
@@ -31,10 +31,10 @@ int main(int argc, char** argv)
 	/*O sistema de equações a ser resolvido é estampado*/
 	Estampar(net_List, sistema, lista.size());
 
-	/**/
+	/*O programa calcula aqui em quantos instantes de tempo o circuito precisará ser analisado*/
 	dadosAnalise.NumeroDeOperacoes();
 
-	/**/
+	/*O arquivo que contém a netlist do circuito a ser analisado é fechado */
 	arquivo.close();
 	
 	/*O arquivo de saída .TAB é criado e aberto*/
@@ -43,19 +43,19 @@ int main(int argc, char** argv)
 	/*É inicializado um loop de análise no tempo*/
 	for (size_t indice = 0; indice <= dadosAnalise.numero_De_Analises; indice++)
 	{
-		cout << dadosAnalise.tempo_Atual<<endl;
 		dadosAnalise.CalcularComponentesTempo(net_List);					/*Os valores dos componentes variáveis no tempo são calculados para o instante t de análise*/
-		dadosAnalise.AtualizarEstampa(net_List, sistema, sistemaResolvido); /*A estampa dos componentes variáveis no tempo é atualizada*/		
-		
+		dadosAnalise.AtualizarEstampa(net_List, sistema, sistemaResolvido); /*A estampa dos componentes variáveis no tempo é atualizada*/				
 		ResolverSistema(sistema, sistemaResolvido);							/*O sistema de equações é resolvido*/
+		
+		/*Verifica-se se houve convergência para os componentes não lineares*/
+		/*Em caso positivo o programa é encerrado com ERRO_DE_ESTABILIZAÇÂO*/
 		erro = dadosNR.CalcularNewtonRapson(net_List, sistema, sistemaResolvido);
 		if(erro == ERRO_DE_ESTABILIZACAO){
-			cout << "DEU RUIM não convergiu";
-			return(ERRO_DE_ESTABILIZACAO);
-		};	/*A próxima aproximação do método de Newton-Raphson é calculada*/
+			cout << "A análise não converge." << endl;
+			return(ERRO_MAIN_NAO_CONVERGENCIA);
+		};
 	
 		SalvarResultados(arquivo, lista, sistemaResolvido, parametros, dadosAnalise);	/*O resultado no instante t de análise é impresso no .TAB*/
-		
 		dadosAnalise.tempo_Atual += dadosAnalise.passo;									/*O instante t de análise é atualizado*/
 	}
 	

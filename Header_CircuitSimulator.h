@@ -32,17 +32,26 @@ using namespace std;
 enum error 
 {
 	SUCESSO,									/*Caso o programa execute por completo, sem erros*/
-	ARQUIVO_INEXISTENTE,						/*Caso um arquivo .NET, fornecido como entrada para o programa, não exista*/
+
+	/*Erros ao executar CircuitSimulator.cpp*/
+	ERRO_MAIN_NAO_CONVERGENCIA,					/*Caso em que o programa é encerrado por um componente não linear não ter convergido*/
+	
+	/*Erros ao executar Functions_CircuitSimulator.cpp*/
+	ERRO_ARQUIVO_INEXISTENTE,					/*Caso um arquivo .NET, fornecido como entrada para o programa, não exista*/
 	ERRO_NUMERO_MAXIMO_ELEMENTOS,				/*Caso o arquivo .NET fornecido como entrada tenha mais de 100 elementos*/
+	ERRO_ELEMENTO_DESCONHECIDO,					/*Caso o arquivo .NET fornecido como entrada possua um elemento desconhecido*/
+	ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES,	/*Caso o número de correntes adicionadas ao circuito pelo programa exceda um valor máximo*/
+	ERRO_ESTAMPAR,								/*Caso tenha-se tentado estampar um componente que não existe*/
 	ERRO_NUMERO_MAXIMO_NOS,						/*Caso o arquivo .NET fornecido como entrada descreva um circuito com mais de 100 nós*/
-	ELEMENTO_DESCONHECIDO,						/*Caso o arquivo .NET fornecido como entrada possua um elemento desconhecido*/
-	NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES,		/*Caso o número de correntes adicionadas ao circuito pelo programa exceda um valor máximo*/
-	SISTEMA_SINGULAR,							/*Caso, ao resolver um sistema de equações, o programa se deparar com um sistema singular*/
-	ERRO_ABERTURA_ARQUIVO,						/*Caso, ao tentar abrir um arquivo, o programa não consiga*/
+	ERRO_SISTEMA_SINGULAR,							/*Caso, ao resolver um sistema de equações, o programa se deparar com um sistema singular*/
+	
+	/*Erros ao executar Methods_NewtonRaphson_Algorithm*/
 	ESTABILIZOU,								/*Caso uma análise com elementos não-lineares tenha estabilizado*/
 	ERRO_DE_ESTABILIZACAO,						/*Caso uma análise com elementos não-lineares não tenha estabilizado*/
-	ERRO_ESTAMPA_NAO_LINEAR,					/*Caso não exista chaves ou resistores não lineares e uma atualização de estampa para elementos não lineares for pedida*/
-	ERRO_COMPONENTE_NAO_CALCULADO,				/*Caso não exista cgaves ou resistores não lineares e um calculo desses componentes foi solicitado*/
+	ERRO_ESTAMPAR_NAO_LINEAR,					/*Caso não exista chaves ou resistores não lineares e uma atualização de estampa para elementos não lineares for pedida*/
+	ERRO_COMPONENTE_NAO_CALCULADO,				/*Caso não exista chaves ou resistores não lineares e um calculo desses componentes foi solicitado*/
+
+	/*Erros ao executar Methods_Time_Analize*/
 };
 
 /*Classe que contém os atributos de um componente genérico que um circuito pode ter*/
@@ -83,14 +92,14 @@ public:
 	double passo;					/*Tempo entre um cálculo e outro durante a análise. Ex: O programa calcula uma tensão para t e para t+passo*/
 	string metodo;					/*Método da análise. Ex: TRAP, BE, FE*/
 	int passos_Tabela;
-	size_t numero_De_Analises;
+	size_t numero_De_Analises;		/*Quantidade de análises no tempo que devem ser feitas. tempo total / passo*/
 	infcomp comp_var;				/*Matriz que contém informações de um componente variável no tempo. Ex: Fontes senoidais*/
 	vector<size_t> posicao_var;
 	
 	/*Métodos que pertencem à classe*/
 	int CalcularComponentesTempo(netlist &net_List);									/*Calcula o valor das fontes pulsantes e senoidais em cada instante de tempo*/
 	int AtualizarEstampa(netlist &net_List, matriz &sistema, matriz sistema_Anterior);	/*Atualiza a estampa dos componentes variáveis no tempo durante a análise*/
-	int NumeroDeOperacoes();
+	int NumeroDeOperacoes();															/*Calcula quantas análises no tempo devem ser realizadas*/
 };
 
 /*Classe que contém informações de componentes não lineraes*/

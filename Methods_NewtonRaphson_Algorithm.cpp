@@ -63,7 +63,6 @@ int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &s
 			/*Se o componente for um resistor linear por partes*/
 			case 'N':
 				erroGmin = GminStep(sistema, net_List, tipo, indice, verifica_Convergencia[indice_NL],fator_divisao[indice_NL]);
-				cout << "erro" << erro << endl;
 				if (erroGmin != ESTABILIZOU) contadorDiferencial++;
 				if (erroGmin == ERRO_DE_ESTABILIZACAO) return(erroGmin);
 				verifica_Convergencia[indice_NL] = true;
@@ -122,10 +121,10 @@ int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t in
 		sistema[net_List[indice].no_A][net_List[indice].no_B] -= novo_valor - net_List[indice].valor;
 		sistema[net_List[indice].no_B][net_List[indice].no_A] -= novo_valor - net_List[indice].valor;
 		net_List[indice].valor = novo_valor;				/*O valor da condutância do componente não linear é atualizado*/
-		return (SUCESSO)
+		return (SUCESSO);
 	}
 	/*Caso não existam chaves ou resistores não lineares, o método retorna esse código*/
-	return(ERRO_ESTAMPA_NAO_LINEAR);
+	return(ERRO_ESTAMPAR_NAO_LINEAR);
 }
 
 //#########################################################################################################
@@ -248,7 +247,7 @@ int Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_An
 	double Io;
 
 	size_t indice;
-	site_t indice_NL;
+	size_t indice_NL;
 	size_t num_Variaveis = sistema.size();
 	size_t contadorDiferencial = 1;
 	size_t contadorInteracao = 0;					/*Variável auxiliar que armazena o número de iterações no método de Newton-Raphson*/

@@ -216,7 +216,7 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 //#########################################################################################################
 //#########################################################################################################
 
-int Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia) {
+size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia) {
 	/*Varáveis utilizadas*/
 	char tipo;										/*Armazena o tipo de componente não linear que está sendo tratado*/
 	double valor_Aux;

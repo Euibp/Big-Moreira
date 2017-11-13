@@ -104,11 +104,9 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 
 	/*Se o arquivo aberto estiver vazio, é assumido que aquele arquivo de netlist não existe*/
 	if (!arquivo.is_open())
-	{
 		return(ERRO_ARQUIVO_INEXISTENTE);
-	}
 
-	getline(arquivo, linha);					/*Lê a primeira linha do arquivo, a qual contém o número de nós do circuito*/
+	getline(arquivo, linha);				/*Lê a primeira linha do arquivo, a qual contém o número de nós do circuito*/
 
 	/*Cada linha do arquivo, exceto a primeira, pode conter informações de um componente, comentários ou instruções de análise*/
 	/*Enquanto o arquivo não termina, cada linha dele é lida nesse while aqui*/
@@ -124,7 +122,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		/*Cada informação na linha é separada por um espaço*/
 		/*Essa parte divide a linha em strigs, a cada espaço, e armazena cada string em uma posição de um vetor, chamado SplitVec*/
 		stringstream sStream(linha);
-		vector<string> SplitVec;
+		vector<string> SplitVec;						/*Vetor contendo as strings nas quais uma linha foi dividida*/
 		while (getline(sStream, componente, ' '))
 		{
 			SplitVec.push_back(componente);
@@ -238,7 +236,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			informacoes.passo = stod(SplitVec[2]);
 			informacoes.metodo = SplitVec[3];
 			informacoes.passos_Tabela = stoi(SplitVec[4]);
-			ne--;																			//PERIGO!! PODE ESTAR DANDO MERDA!!
+			ne--;
 		}
 
 		/*Se o primeiro caracter da linha é um * trata-se de comentário*/
@@ -254,8 +252,9 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		}
 
 		/*Se na lista for armazenada mais variáveis de tensão do que é permitido, o programa acaba indicando erro*/
-		if ((generico.tipo != "*") && (generico.tipo != ".")) {
-			if (lista.size() == MAX_NOS)
+		if ((generico.tipo != "*") && (generico.tipo != "."))
+		{
+			if ((lista.size() - 1) == MAX_NOS)		/*lista.size retorna o tamanho da lista, isto é, retorna a quantidade de nós + 1, pois a lista começa no 0*/
 				return(ERRO_NUMERO_MAXIMO_NOS);
 			net_List.push_back(generico);
 		}
@@ -271,9 +270,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 
 /*Ao rodar essa função os nós do circuito a ser analisado são nomeados*/
 int NomearNos(string nome, vector<string> &lista) {
-	int outNum;
-
-	outNum = stoi(nome);
+	int outNum = stoi(nome);											/*Armazena o nome de um nó. Isso dá certo porque os nós são nomeados com números*/
 
 	for (unsigned int index = 0; index < lista.size(); index++)
 		if (nome == lista[index]) {
@@ -291,7 +288,7 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 
 	/*Variáveis utilizadas*/
 	string tipo;														/*Tipo da variável*/
-	unsigned int num_Nos = (unsigned int)lista.size() - 1;							/*Número de nós do circuito*/
+	unsigned int num_var_calc = (unsigned int)lista.size() - 1;			/*Número de variáveis a serem calculadas*/
 
 	/*A netlist do circuito é varrida nesse loop*/
 	for (size_t indice = 0; indice < net_List.size(); indice++) {
@@ -299,27 +296,25 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 		/*O tipo de elemento a ser configurado é pego aqui*/
 		tipo = net_List[indice].tipo;
 
+		/*Se os componentes V, E, F, O, L e K estiverem no circuito, uma nova variável de corrente deve ser acrescentada para cada componente*/
 		if (tipo == "V" || tipo == "E" || tipo == "F" || tipo == "O" || tipo == "L" || tipo == "K"){
-			num_Nos++; /*Uma variável de corrente a mais é contada*/
-			if (num_Nos > MAX_NOS){
-				//printf("As correntes extra excederam o numero de variaveis permitido (%d)\n", MAX_NOS);
+			num_var_calc++;									/*Número de variáveis a serem calculadas é incrementado*/
+			if (num_var_calc > MAX_COMPONENTE)				/*Há um número máximo de variáveis que podem ser calculadas*/
 				return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
-			}
-			lista.push_back("j" + net_List[indice].nome);
-			net_List[indice].j_x = num_Nos; 
+			lista.push_back("j" + net_List[indice].nome);	/*A nova variável de corrente recebe um nome*/
+			net_List[indice].j_x = num_var_calc;			/*Em j_x é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
 		}
 
-		/*Se o componente for uma fonte de tensão controlada por corrente é necessário acrescentar
-		duas novas variáveis de corrente*/
+		/*Se o componente for uma fonte de tensão controlada por corrente é necessário acrescentar duas novas variáveis de corrente*/
 		else if (tipo == "H")
 		{
-			num_Nos = num_Nos + 2; /*Duas variáveis de corrente a mais são contadas*/
-			if (num_Nos > MAX_NOS)
+			num_var_calc = num_var_calc + 2;				/*Número de variáveis a serem calculadas é incrementado*/
+			if (num_var_calc > MAX_COMPONENTE)				/*Há um número máximo de variáveis que podem ser calculadas*/
 				return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
-			lista.push_back("jx" + net_List[indice].nome);
-			net_List[indice].j_x = num_Nos - 1;
-			lista.push_back("jy" + net_List[indice].nome);
-			net_List[indice].j_y = num_Nos;
+			lista.push_back("jx" + net_List[indice].nome);	/*A nova variável de corrente recebe um nome*/
+			net_List[indice].j_x = num_var_calc;		/*Em j_x é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
+			lista.push_back("jy" + net_List[indice].nome);	/*A nova variável de corrente recebe um nome*/
+			net_List[indice].j_y = num_var_calc - 1;			/*Em j_y é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
 		}
 	}
 	return(SUCESSO);

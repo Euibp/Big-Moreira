@@ -2,7 +2,10 @@
 /*By Igor Bandeira Pandolfi, Gabriel Morgado Fonseca, Marina Lacerda*/
 /*Este arquivo contém o código prinipal do programa*/
 
+/*Bibliotecas necessárias*/
 #include "stdafx.h"
+
+/*Arquivo de header*/
 #include "Header_CircuitSimulator.h"
 
 int main(int argc, char** argv)
@@ -12,11 +15,11 @@ int main(int argc, char** argv)
 	cout << "Processando... " << endl;
 
 	/*Variáveis e Objetos*/
-	string nome = argv[1];			/*Nome do arquivo .NET de entrada*/
+	string nome = argv[1];			/*Nome do arquivo .NET de entrada. O nome do arquivo contendo o netlist deve ser inserido como argumento ao rodar o programa*/
 	netlist net_List;				/*Netlist do circuito a ser analisado*/
-	vector<string> lista;
-	matriz sistema;					/*Sistema de equações, com as estampas dos componentes, num instante t de análise*/
-	matriz sistemaResolvido;		/*Sistema de equações resolvido*/
+	vector<string> lista;			/*Vetor que armazena nomes das variáveis a serem calculadas. Por extensão, armazena os nomes do nós do circuito*/
+	matriz sistema;					/*Sistema de equações, com as estampas dos componentes, num instante t de análise, a ser resolvido*/
+	matriz sistemaResolvido;		/*Sistema de equações resolvido, para um instante t de análise*/
 	ofstream arquivo;				/*Arquivo sendo manipulado*/
 	param parametros;				/*Objeto que armazena as informações a serem impressas no arquivo .TAB de saída*/
 	Dados_Analise dadosAnalise;		/*Objeto que contém instruções para uma análise no tempo*/

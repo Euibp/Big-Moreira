@@ -67,8 +67,8 @@ public:
 	int	no_C;				/*Se for um AmpOp, número do Nó C onde o componente está ligado OU se for uma fonte controlada(chave), número do nó C do ramo de controle*/
 	int	no_D;				/*Se for um AmpOp, número do Nó D onde o componente está ligado OU se for uma fonte controlada(chave), número do nó D do ramo de controle*/
 
-	int	j_x;				/*Nó de partida de corrente passando pelo componente ou pelo ramo de controle*/
-	int	j_y;				/*Nó de chegada de corrente passando pelo componente ou pelo ramo de controle*/
+	int	j_x;				/*Número da coluna/linha de uma matriz correspondente à uma corrente X*/
+	int	j_y;				/*Número da coluna/linha de uma matriz correspondente à uma corrente Y*/
 
 	double valor_novo;		/*Variável auxiliar para armezenar um valor*/
 	double Io;				/*Variável auxiliar para armezenar um valor inicial de corrente em Newton-Raphson*/						
@@ -113,7 +113,7 @@ public:
 	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor); /*Atualiza a estampa dos componentes não lineares durante a análise*/
 	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);				/*Calcula o próximo valor de um componente não linear*/
 	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);
-	int InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);
+	size_t InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);
 };
 
 /*Classe que armazena as informações a serem impressas no arquivo .TAB de saída*/

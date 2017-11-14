@@ -3,7 +3,7 @@
 /*Este arquivo contém inclusão de bibliotecas e namespaces, definição de macros, definição de códigos de erro,
   declaração das classes e das funções utilizadas, definição de tipos*/
 
-/*Bibliotecas Utilizadas*/
+/*Bibliotecas Utilizadas no Programa*/
 #include "stdafx.h"
 #include <iostream>
 #include <string>
@@ -109,7 +109,7 @@ public:
 	vector<size_t> posicao_var;
 
 	/*Métodos que pertencem à classe*/
-	int CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson*/
+	int CalcularNewtonRaphson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson*/
 	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor); /*Atualiza a estampa dos componentes não lineares durante a análise*/
 	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);				/*Calcula o próximo valor de um componente não linear*/
 	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);

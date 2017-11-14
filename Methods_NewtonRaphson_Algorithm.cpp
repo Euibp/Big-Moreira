@@ -24,7 +24,7 @@ struct gminParam {
 //#########################################################################################################
 
 /*Este método calcula a próxima aproximação quando no Método de Newton-Raphson*/
-int Dados_NR::CalcularNewtonRapson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior) {
+int Dados_NR::CalcularNewtonRaphson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior) {
 	/*Variáveis utilizadas*/
 	int erroGmin;																/*Armazena o valor de retorno do método Gmin*/
 	size_t indice;																/*Variável auxiliar utilizada em loops*/
@@ -110,6 +110,7 @@ int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t in
 int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator) {
 	/*Variáveis utilizadas*/
 	double novo_Gmin;							/*Valor atualizado da condutância posta em paralelo com ramos não lineares*/
+	double fator_Anterior = 1;
 
 	/*Se a condutância posta em paralelo for menor que o permitido e o sistema não tiver convergido, o Gmin é resetado*/
 	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == false)  
@@ -125,14 +126,14 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 		
 		/*Caso em que com o Gmin "atual" não houve convergência. Tenta-se dividir Gmin por um valor menor que 10 para verificar se há convergência dessa vez*/
 		if (convergencia == false) {
-			net_List[indice].gmin = net_List[indice].gmin * fator;
+			fator_Anterior = fator;
 			fator = sqrt(fator);											/*O fator de divisão do Gmin é, nesse caso, raíz quadrada do fator anterior*/
 			if (fator < FATOR_DIVISAO_MINIMO)								/*O fator de divisão do Gmin não pode ser menor que um dado valor*/ 
 				return(ERRO_DE_ESTABILIZACAO);
 		}
 
 		/*Aqui o Gmin é atualizado através da divisão por um fator. Se o Gmin atualizado for menor que o Gmin mínimo, não deve ser mais dividido*/
-		novo_Gmin = net_List[indice].gmin / fator;
+		novo_Gmin = (net_List[indice].gmin / fator) * fator_Anterior;
 		if (novo_Gmin < GMIN_MINIMO) 
 		{
 			if (convergencia == false) {									/*Se o sistema não tiver convergido*/
@@ -177,21 +178,21 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 		/*Se o componente for definido pela primeira reta, definida pelo primeiro e pelo segundo ponto*/
 		if (valorAnterior <= stod(paramNR[5])) {
 			condutanciaDoComponente = (stod(paramNR[6]) - stod(paramNR[4])) / (stod(paramNR[5]) - stod(paramNR[3]));
-			Io = stod(paramNR[6]) - condutanciaDoComponente*(stod(paramNR[5]));
+			Io = -stod(paramNR[6]) + condutanciaDoComponente*(stod(paramNR[5]));
 			return(condutanciaDoComponente);
 		}
 
 		/*Se o componente for definido pela segunda reta, definida pelo segundo e pelo terceiro ponto*/
 		else if (valorAnterior <= stod(paramNR[7])) {
 			condutanciaDoComponente = ((stod(paramNR[8]) - stod(paramNR[6])) / (stod(paramNR[7]) - stod(paramNR[5])));
-			Io = stod(paramNR[8]) - condutanciaDoComponente*(stod(paramNR[7]));
+			Io = -stod(paramNR[8]) + condutanciaDoComponente*(stod(paramNR[7]));
 			return(condutanciaDoComponente);
 		}
 
 		/*Se o componente for definido pela terceira reta, definida pelo segundo e pelo terceiro ponto*/
 		else {
 			condutanciaDoComponente = ((stod(paramNR[10]) - stod(paramNR[8])) / (stod(paramNR[9]) - stod(paramNR[7])));
-			Io = stod(paramNR[10]) - condutanciaDoComponente*(stod(paramNR[9]));
+			Io = -stod(paramNR[10]) + condutanciaDoComponente*(stod(paramNR[9]));
 			return(condutanciaDoComponente);
 		}
 		break;
@@ -246,7 +247,8 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 				novo_valor = CalcularValorNR(comp_var[indice_NL], valor_Aux, Io);
 //				cout << novo_valor << " // " << net_List[indice].valor << endl;
 
-				if (abs(novo_valor - net_List[indice].valor) > TOLG) {
+//				if (abs(novo_valor - net_List[indice].valor) > TOLG) {
+				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)) {
 					EstampaNR(sistema, net_List, tipo, indice, novo_valor);
 					sistema[net_List[indice].no_A][num_Variaveis] += Io - net_List[indice].Io;
 					sistema[net_List[indice].no_B][num_Variaveis] -= Io - net_List[indice].Io;

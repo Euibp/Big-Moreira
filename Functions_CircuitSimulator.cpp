@@ -312,9 +312,9 @@ int ConfigurarNetList(netlist &net_List, vector<string> &lista) {
 			if (num_var_calc > MAX_COMPONENTE)				/*Há um número máximo de variáveis que podem ser calculadas*/
 				return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 			lista.push_back("jx" + net_List[indice].nome);	/*A nova variável de corrente recebe um nome*/
-			net_List[indice].j_x = num_var_calc;		/*Em j_x é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
+			net_List[indice].j_x = num_var_calc;			/*Em j_x é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
 			lista.push_back("jy" + net_List[indice].nome);	/*A nova variável de corrente recebe um nome*/
-			net_List[indice].j_y = num_var_calc - 1;			/*Em j_y é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
+			net_List[indice].j_y = num_var_calc - 1;		/*Em j_y é armazenada a coluna, da matriz contendo o sistema a ser resolvido, correspondente à essa corrente*/
 		}
 	}
 	return(SUCESSO);

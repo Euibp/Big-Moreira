@@ -153,7 +153,7 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 	sistema[net_List[indice].no_A][net_List[indice].no_B] -= novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_B][net_List[indice].no_A] -= novo_Gmin - net_List[indice].gmin;
 	net_List[indice].gmin = novo_Gmin;
-	cout << "Gmin ::" << novo_Gmin << endl;
+	//cout << "Gmin ::" << novo_Gmin << endl;
 
 	return(SUCESSO);
 }

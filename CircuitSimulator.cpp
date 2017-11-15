@@ -55,7 +55,8 @@ int main(int argc, char** argv)
 	/*É inicializado um loop de análise no tempo*/
 	for (size_t indice = 0; indice <= dadosAnalise.numero_De_Analises; indice++)
 	{
-		cout << dadosAnalise.tempo_Atual << endl;
+		//cout << dadosAnalise.tempo_Atual << endl;
+		//cout << indice<<endl;
 
 		dadosAnalise.CalcularComponentesTempo(net_List);					/*Os valores dos componentes variáveis no tempo são calculados para o instante t de análise*/
 		dadosAnalise.AtualizarEstampa(net_List, sistema, sistemaResolvido); /*A estampa dos componentes variáveis no tempo é atualizada*/				
@@ -68,8 +69,9 @@ int main(int argc, char** argv)
 			cout << "A análise não converge." << endl;
 			return(ERRO_MAIN_NAO_CONVERGENCIA);
 		};
-	
-		SalvarResultados(arquivo, lista, sistemaResolvido, parametros, dadosAnalise);	/*O resultado no instante t de análise é impresso no .TAB*/
+		if ((indice) % dadosAnalise.passos_Tabela == 0 || indice == 0) {
+			SalvarResultados(arquivo, lista, sistemaResolvido, parametros, dadosAnalise);	/*O resultado no instante t de análise é impresso no .TAB*/
+		}
 		dadosAnalise.tempo_Atual += dadosAnalise.passo;									/*O instante t de análise é atualizado*/
 	}
 	

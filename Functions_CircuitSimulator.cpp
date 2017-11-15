@@ -233,7 +233,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		else if (generico.tipo == ".") {
 			informacoes.tipo_Analise = SplitVec[0];
 			informacoes.tempo_Final = stod(SplitVec[1]);
-			informacoes.passo = stod(SplitVec[2]);
+			informacoes.passo = stod(SplitVec[2])/stod(SplitVec[4]);
 			informacoes.metodo = SplitVec[3];
 			informacoes.passos_Tabela = stoi(SplitVec[4]);
 			ne--;

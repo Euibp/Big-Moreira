@@ -11,7 +11,9 @@
 /*Este método calcula quantas análises no tempo devem ser realizadas*/
 int Dados_Analise::NumeroDeOperacoes() 
 {
-	numero_De_Analises = (size_t)floor(tempo_Final / passo); /*numero_De_Analises é atributo da classe e por isso não precisa ser passada como parâmetro*/
+	cout << "Passo ::" << passo << "||" << "Tempo Final :" << tempo_Final << endl;
+	numero_De_Analises = (size_t)round(tempo_Final / passo); /*numero_De_Analises é atributo da classe e por isso não precisa ser passada como parâmetro*/
+	cout << "Interacao ::" <<  numero_De_Analises;
 	return(SUCESSO);
 }
 

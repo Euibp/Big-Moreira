@@ -52,6 +52,9 @@ enum error
 	ERRO_COMPONENTE_NAO_CALCULADO,				/*Caso não exista chaves ou resistores não lineares e um calculo desses componentes foi solicitado*/
 
 	/*Erros ao executar Methods_Time_Analize*/
+	ERRO_NUMERO_DE_OPERACOES,					/*Caso o programa não consiga calcular o número de operações que deve fazer*/
+	ERRO_CALCULO_COMP_TEMPO,					/*Caso o programa não consiga calcular os valores dos componentes variantes no tempo*/
+	ERRO_ATUALIZAR_ESTAMPA,						/*Caso o programa não consiga atualizar estampas enquanto faz a análise no tempo*/
 };
 
 /*Classe que contém os atributos de um componente genérico que um circuito pode ter*/
@@ -91,10 +94,10 @@ public:
 	double tempo_Final;				/*Tempo de duração da análise*/
 	double passo;					/*Tempo entre um cálculo e outro durante a análise. Ex: O programa calcula uma tensão para t e para t+passo*/
 	string metodo;					/*Método da análise. Ex: TRAP, BE, FE*/
-	int passos_Tabela;
+	int passos_Tabela;				/*Em quantos instantes de tempo o programa tem que calcular, para cada resultado a ser impresso no .TAB*/
 	size_t numero_De_Analises;		/*Quantidade de análises no tempo que devem ser feitas. tempo total / passo*/
 	infcomp comp_var;				/*Matriz que contém informações de um componente variável no tempo. Ex: Fontes senoidais*/
-	vector<size_t> posicao_var;
+	vector<size_t> posicao_var;		/**/
 	
 	/*Métodos que pertencem à classe*/
 	int CalcularComponentesTempo(netlist &net_List);									/*Calcula o valor das fontes pulsantes e senoidais em cada instante de tempo*/
@@ -106,25 +109,25 @@ public:
 class Dados_NR {
 public:
 	infcomp comp_var;				/*Matriz que contém os parâmetros de elementos não lineares*/
-	vector<size_t> posicao_var;
+	vector<size_t> posicao_var;		/**/
 
 	/*Métodos que pertencem à classe*/
-	int CalcularNewtonRaphson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);			/*Calcula a próxima aproximação quando no Método de Newton-Raphson*/
-	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor); /*Atualiza a estampa dos componentes não lineares durante a análise*/
-	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);				/*Calcula o próximo valor de um componente não linear*/
-	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);
-	size_t InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);
+	int CalcularNewtonRaphson(netlist &net_List, matriz &sistema, matriz &sistema_Anterior);/*Calcula a próxima aproximação quando no Método de Newton-Raphson*/
+	int EstampaNR(matriz &sistema, netlist &net_list, char tipo, size_t indice, double novo_valor);/*Atualiza a estampa dos componentes não lineares durante a análise*/
+	double CalcularValorNR(vector<string> paramNR, double valorAnterior, double &I0);/*Calcula o próximo valor de um componente não linear*/
+	int GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator);/*Implementa a técnica do GminStepping*/
+	size_t InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia);/*Conta quantas iterações de Newton-Raphson foram feitas*/
 };
 
 /*Classe que armazena as informações a serem impressas no arquivo .TAB de saída*/
 class param {
 public:
 	param() { tempo = 0; erroc = 0; errol = 0; erro = 0; dt = 0;}	/*Construtor da classe*/
-	double tempo; /*Instante t da análise*/
-	double erroc;	
-	double errol;
-	double erro;
-	double dt;
+	double tempo;													/*Instante t da análise*/
+	double erroc;													/*Não utilizado*. Talvez tenha que estar aqui para plotar gráficos no MNAE*/
+	double errol;													/*Não utilizado*. Talvez tenha que estar aqui para plotar gráficos no MNAE*/
+	double erro;													/*Não utilizado*. Talvez tenha que estar aqui para plotar gráficos no MNAE*/
+	double dt;														/*Não utilizado*. Talvez tenha que estar aqui para plotar gráficos no MNAE*/
 };
 
 /*Protótipos das funções utilizadas no programa*/

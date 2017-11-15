@@ -2,7 +2,10 @@
 /*By Igor Bandeira Pandolfi, Gabriel Morgado Fonseca, Marina Lacerda*/
 /*Este arquivo contém a implementação dos métodos da classe Dados_NR*/
 
+/*Bibliotecas necessárias*/
 #include "stdafx.h"
+
+/*Arquivo de header*/
 #include "Header_CircuitSimulator.h"
 
 /*Macros Utilizadas para análises de circuitos não lineares*/
@@ -45,7 +48,6 @@ int Dados_NR::CalcularNewtonRaphson(netlist &net_List, matriz &sistema, matriz &
 
 		/*O número de iterações já realizadas é pego aqui. Esse número não pode ultrapassar um certo valor*/
 		contadorInteracao = InteracaoNR(sistema, net_List, sistema_Anterior, verifica_Convergencia);
-
 		if (contadorInteracao <= MAX_INTERACAO_NR && Gmin_Comecou == false)
 			break;
 
@@ -101,12 +103,13 @@ int Dados_NR::EstampaNR(matriz &sistema, netlist &net_List, char tipo, size_t in
 		return (SUCESSO);
 	}
 	/*Caso não existam chaves ou resistores não lineares, o método retorna esse código*/
-	return(ERRO_ESTAMPAR_NAO_LINEAR);
+	return(ERRO_ESTAMPAR_NAO_LINEAR); /*Este código de erro não está sendo utilizado para nada*/
 }
 
 //#########################################################################################################
 //#########################################################################################################
 
+/*Este método implementa a técnica do GminStepping*/
 int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t indice, bool convergencia, double &fator) {
 	/*Variáveis utilizadas*/
 	double novo_Gmin;							/*Valor atualizado da condutância posta em paralelo com ramos não lineares*/
@@ -153,7 +156,6 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 	sistema[net_List[indice].no_A][net_List[indice].no_B] -= novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_B][net_List[indice].no_A] -= novo_Gmin - net_List[indice].gmin;
 	net_List[indice].gmin = novo_Gmin;
-	//cout << "Gmin ::" << novo_Gmin << endl;
 
 	return(SUCESSO);
 }
@@ -212,12 +214,13 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 		break;
 	}
 
-	return(ERRO_COMPONENTE_NAO_CALCULADO);
+	return(ERRO_COMPONENTE_NAO_CALCULADO); /*Este código de erro não está sendo utilizado para nada*/
 }
 
 //#########################################################################################################
 //#########################################################################################################
 
+/*Este método conta quantas iterações de Newton-Raphson foram realizadas*/
 size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema_Anterior, vector<bool> &verifica_Convergencia) {
 	/*Varáveis utilizadas*/
 	char tipo;										/*Armazena o tipo de componente não linear que está sendo tratado*/
@@ -228,7 +231,7 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 	size_t indice;
 	size_t indice_NL;
 	size_t num_Variaveis = sistema.size();
-	size_t contadorDiferencial = 1;
+	size_t contadorDiferencial = 1;					
 	size_t contadorInteracao = 0;					/*Variável auxiliar que armazena o número de iterações no método de Newton-Raphson*/
 
 	/*Esse loop é executado enquanto o número máximo de iterações não é atingido*/
@@ -246,23 +249,18 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 			case 'N':
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 				novo_valor = CalcularValorNR(comp_var[indice_NL], valor_Aux, Io);
-//				cout << novo_valor << " // " << net_List[indice].valor << endl;
 
-//				if (abs(novo_valor - net_List[indice].valor) > TOLG) {
-				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)) {
+				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)) 
+				{
 					EstampaNR(sistema, net_List, tipo, indice, novo_valor);
 					sistema[net_List[indice].no_A][num_Variaveis] -= Io - net_List[indice].Io;
 					sistema[net_List[indice].no_B][num_Variaveis] += Io - net_List[indice].Io;
-
 					net_List[indice].Io = Io;
+
 					contadorDiferencial++;
-					if (contadorInteracao == MAX_INTERACAO_NR) {
+					
+					if (contadorInteracao == MAX_INTERACAO_NR)
 						verifica_Convergencia[indice_NL] = false;
-						//indice_comp_instaveis.push_back(indice);
-					}
-				}
-				else if (contadorInteracao == MAX_INTERACAO_NR && (net_List[indice].no_A == 0 || net_List[indice].no_B == 0)) {
-					//indice_comp_instaveis.push_back(indice);
 				}
 				break;
 			

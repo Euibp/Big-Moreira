@@ -3,7 +3,10 @@
 /*Este arquivo contém os códigos das funções e métodos utilizados no programa, que não tenham a ver explicitamente com
   Método de Newton-Raphson e Análise no Tempo*/
 
+ /*Bibliotecas necessárias*/
 #include "stdafx.h"
+
+ /*Arquivo de header*/
 #include "Header_CircuitSimulator.h"
 
 //#########################################################################################################
@@ -29,9 +32,8 @@ double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 		t_descida = passo;
 
 	/*Programação do pulso*/
-	if (tempo < t_atraso) {																	/*Antes de ligar a fonte tem amplitude de desligada*/
+	if (tempo < t_atraso)																	/*Antes de ligar a fonte tem amplitude de desligada*/
 		return(amplitude1);
-	}
 
 	int interacao = (int)floor((tempo - t_atraso) / periodo);								/*Esta variável guarda a informação de em qual ciclo a fonte está*/
 
@@ -47,8 +49,9 @@ double CalcularPulsante(vector<string> pulso, double tempo, double passo){
 			return(((tempo-t_ligada-t_subida)*(amplitude1 - amplitude2) / t_descida) + amplitude2);
 		}
 	}
-	return(amplitude1);
+
 	/*A função retorna o valor da fonte pulsante em um determinado instante de tempo t*/
+	return(amplitude1);
 }
 
 //#########################################################################################################
@@ -69,9 +72,9 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 	double maxInteracao = stod(seno[10]);	/*Número de ciclos*/
 
 	/*Programação do pulso*/
-	if (tempo > (maxInteracao / frequencia)) {
+	if (tempo > (maxInteracao / frequencia))
 		return(nivelDC);
-	}
+	
 	thetaTemp = (2 * PI*frequencia*(tempo - atraso)) + (PI / 180)*phi;
 	expTemp = exp(-alpha*(tempo - atraso));
 	
@@ -88,8 +91,9 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 	/*Variáveis utilizadas*/
 	ifstream arquivo;						/*Arquivo a ser aberto e lido contendo a netlist do circuito a ser analizado*/
 	string linha;							/*Linha do arquivo a ser lida para que dados de um único componente sejem pegos*/
-	string componente;
+	string componente;						/**/
 	int ne = 0;								/*Número de componentes do circuito a ser analisado*/
+	int erroConfigurarNetlist;				/*Armazena o código de erro da função ConfigurarNetlist*/
 
 	/*Objetos utilizados*/
 	Componente generico;					/*Esse objeto é um componente, com todos os seus atributos*/
@@ -164,8 +168,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		}
 
 		/*Se o primeiro caracter da linha for O, um amplificador operacional ideal é configurado. Ver estampa na apostila*/
-		else if (generico.tipo == "O")
-		{
+		else if (generico.tipo == "O"){
 			generico.nome = SplitVec[0];
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
@@ -210,7 +213,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) / (stod(SplitVec[5]) - stod(SplitVec[3]));
-			generico.Io = 0; //PERGUNTAR PARA O PROFESSOR
+			generico.Io = 0;
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);
 		}
@@ -260,8 +263,11 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 		}
 	}
 
-	arquivo.close();							/*Tudo que era para ser lido foi lido e o arquivo pode ser fechado*/
-	ConfigurarNetList(net_List, lista);			/*Aqui a netlist do circuito é configurada*/
+	arquivo.close();													/*Tudo que era para ser lido foi lido e o arquivo pode ser fechado*/
+	erroConfigurarNetlist = ConfigurarNetList(net_List, lista);			/*Aqui a netlist do circuito é configurada*/
+	if (erroConfigurarNetlist != SUCESSO)
+		return (ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
+
 	return(SUCESSO);
 };
 
@@ -507,7 +513,7 @@ int ResolverSistema(matriz sistema, matriz &outSistema) {
 			}
 		}
 	}
-	sistema[0][sistema.size()] = 0; /*Diz que a tensão no nó de terra é 0*/
+	sistema[0][sistema.size()] = 0; /*Diz que a tensão no nó de terra é 0. Isso é muito importante*/
 	outSistema = sistema;
 	return(SUCESSO);
 }

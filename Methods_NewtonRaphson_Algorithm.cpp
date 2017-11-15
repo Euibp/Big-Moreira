@@ -8,7 +8,7 @@
 /*Macros Utilizadas para análises de circuitos não lineares*/
 #define MAX_INTERACAO_NR 20				/*Número máximo de interações utilizando Newton-Raphson*/
 #define MAX_INTERACAO_GMIN_STEPPING 20	/*Número máximo de interações utilizando Gmin Stepping*/
-#define GMIN_MAXIMO 100					/*Máxima condutância posta em paralelo com um componente não linear em Gmin Stepping*/
+#define GMIN_MAXIMO 1.1					/*Máxima condutância posta em paralelo com um componente não linear em Gmin Stepping*/
 #define GMIN_MINIMO 1e-12				/*Mínima condutância posta em paralelo com um componente não linear em Gmin Stepping*/
 #define FATOR_INICIAL 10				/*Maior fator de divisão de Gmin*/
 #define FATOR_DIVISAO_MINIMO 1.01		/*Menor fator de divisão de Gmin*/
@@ -153,6 +153,7 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 	sistema[net_List[indice].no_A][net_List[indice].no_B] -= novo_Gmin - net_List[indice].gmin;
 	sistema[net_List[indice].no_B][net_List[indice].no_A] -= novo_Gmin - net_List[indice].gmin;
 	net_List[indice].gmin = novo_Gmin;
+	cout << "Gmin ::" << novo_Gmin << endl;
 
 	return(SUCESSO);
 }
@@ -178,21 +179,21 @@ double Dados_NR::CalcularValorNR(vector<string> paramNR, double valorAnterior, d
 		/*Se o componente for definido pela primeira reta, definida pelo primeiro e pelo segundo ponto*/
 		if (valorAnterior <= stod(paramNR[5])) {
 			condutanciaDoComponente = (stod(paramNR[6]) - stod(paramNR[4])) / (stod(paramNR[5]) - stod(paramNR[3]));
-			Io = -stod(paramNR[6]) + condutanciaDoComponente*(stod(paramNR[5]));
+			Io = stod(paramNR[6]) - condutanciaDoComponente*(stod(paramNR[5]));
 			return(condutanciaDoComponente);
 		}
 
 		/*Se o componente for definido pela segunda reta, definida pelo segundo e pelo terceiro ponto*/
 		else if (valorAnterior <= stod(paramNR[7])) {
 			condutanciaDoComponente = ((stod(paramNR[8]) - stod(paramNR[6])) / (stod(paramNR[7]) - stod(paramNR[5])));
-			Io = -stod(paramNR[8]) + condutanciaDoComponente*(stod(paramNR[7]));
+			Io = stod(paramNR[8]) - condutanciaDoComponente*(stod(paramNR[7]));
 			return(condutanciaDoComponente);
 		}
 
 		/*Se o componente for definido pela terceira reta, definida pelo segundo e pelo terceiro ponto*/
 		else {
 			condutanciaDoComponente = ((stod(paramNR[10]) - stod(paramNR[8])) / (stod(paramNR[9]) - stod(paramNR[7])));
-			Io = -stod(paramNR[10]) + condutanciaDoComponente*(stod(paramNR[9]));
+			Io = stod(paramNR[10]) - condutanciaDoComponente*(stod(paramNR[9]));
 			return(condutanciaDoComponente);
 		}
 		break;
@@ -250,8 +251,8 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 //				if (abs(novo_valor - net_List[indice].valor) > TOLG) {
 				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)) {
 					EstampaNR(sistema, net_List, tipo, indice, novo_valor);
-					sistema[net_List[indice].no_A][num_Variaveis] += Io - net_List[indice].Io;
-					sistema[net_List[indice].no_B][num_Variaveis] -= Io - net_List[indice].Io;
+					sistema[net_List[indice].no_A][num_Variaveis] -= Io - net_List[indice].Io;
+					sistema[net_List[indice].no_B][num_Variaveis] += Io - net_List[indice].Io;
 
 					net_List[indice].Io = Io;
 					contadorDiferencial++;

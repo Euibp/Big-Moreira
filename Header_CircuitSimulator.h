@@ -78,7 +78,7 @@ public:
 };
 
 /*Tipos de Variável Utilizados*/
-typedef vector<vector<double>> matriz;	/*Uma matriz onde todos os valores podem possuir casas decimais*/
+typedef vector<vector<double>> matriz;	//Uma matriz onde todos os valores podem possuir casas decimais*/
 typedef vector<vector<string>> infcomp; /*Uma matriz onde todos os valores são strings*/
 typedef vector<Componente> netlist;		/*Um vetor de elementos da classe componente*/
 

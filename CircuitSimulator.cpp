@@ -55,6 +55,8 @@ int main(int argc, char** argv)
 	/*É inicializado um loop de análise no tempo*/
 	for (size_t indice = 0; indice <= dadosAnalise.numero_De_Analises; indice++)
 	{
+		cout << dadosAnalise.tempo_Atual << endl;
+
 		dadosAnalise.CalcularComponentesTempo(net_List);					/*Os valores dos componentes variáveis no tempo são calculados para o instante t de análise*/
 		dadosAnalise.AtualizarEstampa(net_List, sistema, sistemaResolvido); /*A estampa dos componentes variáveis no tempo é atualizada*/				
 		ResolverSistema(sistema, sistemaResolvido);							/*O sistema de equações é resolvido*/

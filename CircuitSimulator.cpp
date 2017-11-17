@@ -41,23 +41,23 @@ int main(int argc, char** argv)
 	erroObterNetlist = ObterNetlist((nome), net_List, lista, dadosAnalise, dadosNR);
 	if (erroObterNetlist != SUCESSO){
 		if (erroObterNetlist == ERRO_ARQUIVO_INEXISTENTE){
-			cout << "O Netlist informado nao existe." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+			cout << "O Netlist informado nao existe." << endl;
 			return(ERRO_ARQUIVO_INEXISTENTE);
 		};
 		if (erroObterNetlist == ERRO_NUMERO_MAXIMO_ELEMENTOS){
-			cout << "O Netlist possui mais elementos que o permitido." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+			cout << "O Netlist possui mais elementos que o permitido." << endl;
 			return(ERRO_NUMERO_MAXIMO_ELEMENTOS);
 		};
 		if (erroObterNetlist == ERRO_ELEMENTO_DESCONHECIDO){
-			cout << "O Netlist possui um ou mais elementos desconhecidos." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+			cout << "O Netlist possui um ou mais elementos desconhecidos."<< endl;
 			return(ERRO_ELEMENTO_DESCONHECIDO);
 		};
 		if (erroObterNetlist == ERRO_NUMERO_MAXIMO_NOS){
-			cout << "O circuito a ser analisado possui um numero muito grande de nos." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+			cout << "O circuito a ser analisado possui um numero muito grande de nos."<< endl;
 			return(ERRO_NUMERO_MAXIMO_NOS);
 		};
 		if (erroObterNetlist == ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES){
-			cout << "O circuito a ser analisado requer o calculo de um numero grande de correntes." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+			cout << "O circuito a ser analisado requer o calculo de um numero grande de correntes." << endl;
 			return(ERRO_NUMERO_DE_CORRENTES_EXTRAS_EXEDENTES);
 		};
 	};
@@ -65,14 +65,14 @@ int main(int argc, char** argv)
 	/*O sistema de equações a ser resolvido é estampado*/
 	erroEstampar = Estampar(net_List, sistema, lista.size());
 	if (erroEstampar == ERRO_ESTAMPAR){
-		cout << "Nao foi possivel construir um sistema de equacoes para resolver." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+		cout << "Nao foi possivel construir um sistema de equacoes para resolver." << endl;
 		return(ERRO_ESTAMPAR);
 	};
 
 	/*O programa calcula aqui em quantos instantes de tempo o circuito precisará ser analisado*/
 	erroNumeroDeOperacoes = dadosAnalise.NumeroDeOperacoes();
 	if (erroNumeroDeOperacoes != SUCESSO){
-		cout << "Nao foi possivel calcular o numero de operacoes a serem realizadas." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+		cout << "Nao foi possivel calcular o numero de operacoes a serem realizadas." << endl;
 		return(ERRO_NUMERO_DE_OPERACOES);
 	};
 
@@ -125,11 +125,11 @@ int main(int argc, char** argv)
 	
 	/*O arquivo de saída .TAB é fechado*/
 	arquivo.close();
-	cout << "O circuito foi analisado com sucesso." << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+	cout << "O circuito foi analisado com sucesso."<< endl;
 
 	/*Quando o programa terminou de rodar*/
 	clock_t endClock = clock();
-	cout << "Tempo Gasto: " << double(endClock - startClock) / CLOCKS_PER_SEC << " s" << "    Erro no Tempo :" << dadosAnalise.tempo_Atual << endl;
+	cout << "Tempo Gasto: " << double(endClock - startClock) / CLOCKS_PER_SEC << " s" << endl;
 
 	/*A análise do circuito foi concluída sem problemas*/
 	return(SUCESSO);

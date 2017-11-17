@@ -532,7 +532,8 @@ int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, p
 		for (size_t index = 1; index < lista.size(); index++) {
 			arquivo << " " << lista[index];
 		}
-		arquivo << " erroc" << " errol" << " erro" << " dt" << endl;
+		arquivo << endl;
+//		arquivo << " erroc" << " errol" << " erro" << " dt" << endl;
 	}
 
 	/*Imprime cada linha de dados no .TAB a cada análise no tempo*/
@@ -540,7 +541,8 @@ int SalvarResultados(ofstream &arquivo, vector<string> &lista, matriz sistema, p
 	for (size_t index = 1; index < lista.size(); index++) {
 		arquivo << " " << sistema[index][lista.size()];
 	}
-	arquivo << " " << parametros.erroc << " " << parametros.errol << " " << parametros.erro << " " << parametros.dt << endl;
+//	arquivo << " " << parametros.erroc << " " << parametros.errol << " " << parametros.erro << " " << parametros.dt << endl;
+	arquivo << endl;
 
 	return(SUCESSO);
 }

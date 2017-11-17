@@ -72,7 +72,7 @@ double CalcularSenoide(vector<string> seno, double tempo) {
 	double maxInteracao = stod(seno[10]);	/*Número de ciclos*/
 
 	/*Programação do pulso*/
-	if (tempo > (maxInteracao / frequencia))
+	if ((tempo-atraso) > (maxInteracao / frequencia) || tempo < atraso)
 		return(nivelDC);
 	
 	thetaTemp = (2 * PI*frequencia*(tempo - atraso)) + (PI / 180)*phi;
@@ -213,6 +213,7 @@ int ObterNetlist(string nomeArquivo, netlist &net_List, vector<string> &lista , 
 			generico.no_A = NomearNos(SplitVec[1], lista);
 			generico.no_B = NomearNos(SplitVec[2], lista);
 			generico.valor = (stod(SplitVec[6]) - stod(SplitVec[4])) / (stod(SplitVec[5]) - stod(SplitVec[3]));
+			if (generico.valor == 0) generico.valor += TOLG;
 			generico.Io = 0;
 			infoNetownRapson.posicao_var.push_back(net_List.size());
 			infoNetownRapson.comp_var.push_back(SplitVec);

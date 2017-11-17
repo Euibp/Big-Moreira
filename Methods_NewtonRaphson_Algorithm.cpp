@@ -9,12 +9,12 @@
 #include "Header_CircuitSimulator.h"
 
 /*Macros Utilizadas para análises de circuitos não lineares*/
-#define MAX_INTERACAO_NR 20				/*Número máximo de interações utilizando Newton-Raphson*/
+#define MAX_INTERACAO_NR 50				/*Número máximo de interações utilizando Newton-Raphson*/
 #define MAX_INTERACAO_GMIN_STEPPING 20	/*Número máximo de interações utilizando Gmin Stepping*/
 #define GMIN_MAXIMO 1.1					/*Máxima condutância posta em paralelo com um componente não linear em Gmin Stepping*/
 #define GMIN_MINIMO 1e-12				/*Mínima condutância posta em paralelo com um componente não linear em Gmin Stepping*/
 #define FATOR_INICIAL 10				/*Maior fator de divisão de Gmin*/
-#define FATOR_DIVISAO_MINIMO 1.01		/*Menor fator de divisão de Gmin*/
+#define FATOR_DIVISAO_MINIMO 1.1		/*Menor fator de divisão de Gmin*/
 
 /*Esta struct contém parâmetros auxiliares utilizados em Gmin Stepping*/
 struct gminParam {
@@ -115,10 +115,14 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 	double novo_Gmin;							/*Valor atualizado da condutância posta em paralelo com ramos não lineares*/
 	double fator_Anterior = 1;
 
+	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == true) {
+		return(ESTABILIZOU);
+	}
+
 	/*Se a condutância posta em paralelo for menor que o permitido e o sistema não tiver convergido, o Gmin é resetado*/
-	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == false)  
+	if (net_List[indice].gmin < GMIN_MINIMO && convergencia == false) {
 		novo_Gmin = GMIN_MAXIMO;
-	
+	}
 	/*Se a condutância posta em paralelo ainda puder ser reduzida para tentar uma convergência, o Gmin é dividido por um fator*/
 	else {
 
@@ -137,10 +141,9 @@ int Dados_NR::GminStep(matriz &sistema, netlist &net_List, char tipo, size_t ind
 
 		/*Aqui o Gmin é atualizado através da divisão por um fator. Se o Gmin atualizado for menor que o Gmin mínimo, não deve ser mais dividido*/
 		novo_Gmin = (net_List[indice].gmin / fator) * fator_Anterior;
-		if (novo_Gmin < GMIN_MINIMO) 
+		if (novo_Gmin <= GMIN_MINIMO) 
 		{
 			if (convergencia == false) {									/*Se o sistema não tiver convergido*/
-//				net_List[indice].gmin = novo_Gmin;
 				return(ERRO_DE_ESTABILIZACAO);
 			}
 			else {															/*Se o sistema tiver convergido*/
@@ -234,6 +237,9 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 	size_t contadorDiferencial = 1;					
 	size_t contadorInteracao = 0;					/*Variável auxiliar que armazena o número de iterações no método de Newton-Raphson*/
 
+	vector<vector<double>> tensao_Anterior(comp_var.size(), vector<double>(2));
+
+
 	/*Esse loop é executado enquanto o número máximo de iterações não é atingido*/
 	for (contadorInteracao = 0; contadorInteracao <= MAX_INTERACAO_NR; contadorInteracao++) {
 		contadorDiferencial = 0;
@@ -247,10 +253,19 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 			
 			/*Caso for um resistor linear por partes*/
 			case 'N':
+				if (contadorInteracao == 0) {
+					tensao_Anterior[indice_NL][0] = sistema_Anterior[net_List[indice].no_A][num_Variaveis];
+					tensao_Anterior[indice_NL][1] = sistema_Anterior[net_List[indice].no_B][num_Variaveis];
+				
+				}
+				
 				valor_Aux = sistema_Anterior[net_List[indice].no_A][num_Variaveis] - sistema_Anterior[net_List[indice].no_B][num_Variaveis];
 				novo_valor = CalcularValorNR(comp_var[indice_NL], valor_Aux, Io);
 
-				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)) 
+
+				if (((abs(novo_valor - net_List[indice].valor)) > TOLG )|| (abs(Io - net_List[indice].Io) > TOLG)
+					|| sistema_Anterior[net_List[indice].no_A][num_Variaveis] - tensao_Anterior[indice_NL][0] > TOLG
+					|| sistema_Anterior[net_List[indice].no_B][num_Variaveis] - tensao_Anterior[indice_NL][1] > TOLG)
 				{
 					EstampaNR(sistema, net_List, tipo, indice, novo_valor);
 					sistema[net_List[indice].no_A][num_Variaveis] -= Io - net_List[indice].Io;
@@ -261,7 +276,11 @@ size_t Dados_NR::InteracaoNR(matriz &sistema, netlist &net_List, matriz &sistema
 					
 					if (contadorInteracao == MAX_INTERACAO_NR)
 						verifica_Convergencia[indice_NL] = false;
-				}
+				}					
+
+				tensao_Anterior[indice_NL][0] = sistema_Anterior[net_List[indice].no_A][num_Variaveis];
+				tensao_Anterior[indice_NL][1] = sistema_Anterior[net_List[indice].no_B][num_Variaveis];
+			
 				break;
 			
 			/*Caso for uma chave*/

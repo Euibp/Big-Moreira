@@ -24,7 +24,7 @@ using namespace std;
 #define MAX_COMPONENTE 100			/*Tamanho máximo de componentes em um arquivo .NET*/
 #define MAX_NOS 100					/*Tamanho máximo de nós que um circuito, definido em um arquivo .NET, pode ter*/
 #define MAX_CORRENTES_EXTRAS 50		/*Máximo número de correntes que o programa pode adicionar a um circuito para calcular correntes em ramos*/
-#define TOLG 1e-9					/*Tolerância para determinante, a fim de detectar se um sistema é singular */
+#define TOLG 1e-12					/*Tolerância para determinante, a fim de detectar se um sistema é singular */
 #define PI atan(1)*4				/*Definição do clássico número PI*/
 #define RESISTOR_DE_GAMBIARRA 1e9	/*Resistor utilizado no cálculo do ponto de operação de circuitos com capacitores e indutores*/
 
